@@ -47,13 +47,24 @@ def route_after_safety(state: ChatState) -> Literal["escalate", "rag_response"]:
 def escalate_node(state: ChatState) -> ChatState:
     """
     Triggered when a safety keyword is detected.
-    - Sends Slack alert via MCP (TODO: wire up MCP node)
+    - Fires n8n webhook → Gmail safety alert to founder
     - Returns a safe holding response to the customer
     - Does NOT call the LLM
     """
-    # TODO: trigger n8n MCP webhook → Slack alert to founder
-    # payload = {"session_id": state["session_id"], "message": state["message"]}
-    # httpx.post(os.getenv("N8N_WEBHOOK_BASE_URL") + "/safety-alert", json=payload)
+    import httpx
+
+    try:
+        httpx.post(
+            "https://cvn.app.n8n.cloud/webhook/beauty-advisor",
+            json={
+                "session_id": state["session_id"],
+                "message": state["message"],
+            },
+            timeout=5.0,
+        )
+        print(f"✅ Safety alert fired to n8n for session {state['session_id']}")
+    except Exception as e:
+        print(f"⚠️  n8n safety alert failed: {e} — continuing with holding response")
 
     response = (
         "Thank you for sharing this with us. Your safety is our absolute priority. "

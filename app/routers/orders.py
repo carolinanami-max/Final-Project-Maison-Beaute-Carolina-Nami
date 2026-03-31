@@ -4,8 +4,11 @@ import os
 import httpx
 from fastapi import APIRouter, HTTPException
 from langsmith import traceable
+from dotenv import load_dotenv
+
 from app.models.chat import OrderRequest, OrderResponse
 
+load_dotenv()
 
 router = APIRouter()
 
@@ -48,11 +51,28 @@ async def track_order(request: OrderRequest) -> OrderResponse:
         # ── Step 2: Format brief in-chat status ───────────────
         status_summary = _format_status_summary(order_data["status"])
 
-        # ── Step 3: Send full details to email on file ────────
+        # ── Step 3: Send full details to email on file via n8n ─
         # Email address is retrieved internally — never returned in this response
-        # TODO: trigger n8n MCP email webhook
-        # await _send_order_email(order_data)
-        email_sent = False  # Set to True once MCP email is wired up
+        email_sent = False
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                await client.post(
+                    "https://cvn.app.n8n.cloud/webhook/customer-service",
+                    json={
+                        "message": request.order_number,
+                        "session_id": f"order-{request.order_number}",
+                        "order_number": request.order_number,
+                        "status_summary": status_summary,
+                        "customer_email": order_data.get("customer_email"),
+                        "carrier": order_data.get("carrier"),
+                        "tracking_number": order_data.get("tracking_number"),
+                        "estimated_delivery": order_data.get("estimated_delivery"),
+                    },
+                )
+            email_sent = True
+            print(f"✅ Order email triggered via n8n for {request.order_number}")
+        except Exception as e:
+            print(f"⚠️  n8n order email failed: {e} — order status still returned")
 
         return OrderResponse(
             order_number=request.order_number,
