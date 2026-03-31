@@ -4,6 +4,9 @@ from typing import TypedDict, Literal
 
 from langgraph.graph import StateGraph, END
 from langsmith import traceable
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ─── State definition ─────────────────────────────────────────
 class ChatState(TypedDict):
@@ -64,21 +67,14 @@ def escalate_node(state: ChatState) -> ChatState:
 def rag_response_node(state: ChatState) -> ChatState:
     """
     Normal RAG-based beauty advice response.
-    Retrieves relevant product context, generates answer via Claude Haiku.
-
-    TODO: inject rag_chain at runtime rather than importing here,
-    to avoid circular imports with rag_pipeline.py.
+    Retrieves relevant product context from Pinecone,
+    generates answer via Claude Haiku.
     """
-    # from app.core.rag_pipeline import build_rag_chain
-    # rag_chain = build_rag_chain()
-    # result = rag_chain.invoke({
-    #     "question": state["message"],
-    #     "chat_history": state["chat_history"],
-    # })
-    # return {**state, "response": result["answer"]}
+    from app.core.rag_pipeline import build_rag_chain
 
-    # Placeholder until RAG chain is wired in
-    return {**state, "response": "RAG response — implement rag_chain.invoke() here"}
+    rag_chain = build_rag_chain(namespace="products")
+    response = rag_chain.invoke(state["message"])
+    return {**state, "response": response}
 
 
 # ─── Build LangGraph ──────────────────────────────────────────

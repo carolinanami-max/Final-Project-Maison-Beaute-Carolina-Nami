@@ -2,6 +2,7 @@
 import json
 import os
 
+from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
@@ -48,6 +49,7 @@ Rules:
 - condition_note: honest, reassuring note using ONLY these exact terms: New / Tested Out / Pre-loved. Always mention the quality and hygiene check.
 - NEVER claim the product is New if condition is Tested Out or Pre-loved
 - NEVER invent ingredients not listed in the input
+- NEVER make absolute medical or dermatological claims — use measured language: "known for", "traditionally used for", "may help with"
 - ALWAYS mention that the product comes in original packaging resealed after quality check
 """
 
@@ -70,6 +72,20 @@ async def generate_description(product: ProductInput) -> ProductDescription:
     3. Generates SEO-optimised description via Claude Haiku
     """
     try:
+        # ── Step 0: Validate expiry date ──────────────────────
+        try:
+            expiry = datetime.strptime(product.expiry_date, "%Y-%m")
+            if expiry < datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Product has expired ({product.expiry_date}). Expired products cannot be listed on Maison Beauté."
+                )
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid expiry_date format. Use YYYY-MM (e.g. '2026-09')."
+            )
+
         # ── Step 1: Fetch ingredients from Perplexity ─────────
         perplexity_ingredients = await fetch_ingredients(product.brand, product.product_name)
 
@@ -98,12 +114,16 @@ async def generate_description(product: ProductInput) -> ProductDescription:
 
         return ProductDescription(
             product_id=product.product_id,
+            batch_number=product.batch_number,
+            expiry_date=product.expiry_date,
             title=parsed["title"],
             tagline=parsed["tagline"],
             description=parsed["description"],
             seo_tags=parsed["seo_tags"],
             condition_note=parsed["condition_note"],
             ingredients_source=source,
+            ingredients_verified=False,   # Always False until human review
+            status="pending_review",      # Never auto-publishes
         )
 
     except json.JSONDecodeError:
