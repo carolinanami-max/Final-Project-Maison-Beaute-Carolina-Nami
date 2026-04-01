@@ -269,7 +269,7 @@ with tab3:
             if st.button(q, key=f"faq_chip_{i}"):
                 st.session_state.faq_history.append({"role": "user", "content": q})
                 try:
-                    r = requests.post(f"{API_BASE}/chat/", json={
+                    r = requests.post(f"{API_BASE}/chat/faq", json={
                         "session_id": st.session_state.faq_session_id,
                         "message": q, "chat_history": [],
                     }, timeout=30)
@@ -299,7 +299,7 @@ with tab3:
         st.session_state.faq_history.append({"role": "user", "content": faq_message})
         with st.spinner(""):
             try:
-                r = requests.post(f"{API_BASE}/chat/", json={
+                r = requests.post(f"{API_BASE}/chat/faq", json={
                     "session_id": st.session_state.faq_session_id,
                     "message": faq_message,
                     "chat_history": [{"role": m["role"], "content": m["content"]} for m in st.session_state.faq_history[:-1]],

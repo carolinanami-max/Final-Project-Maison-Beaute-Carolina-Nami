@@ -1,21 +1,11 @@
 # evals/langsmith_eval_config.py
 """
 Maison Beauté AI Advisor — LangSmith Evaluation Runner
-
-Runs 15 golden test cases across Module 2 (Beauty Advisor) and Module 3 (FAQ).
-Evaluates: relevance, namespace correctness, safety escalation accuracy.
-Results appear in LangSmith under project: mainson-beaute-beauty-advisor
-
-Run with:
-    python evals/langsmith_eval_config.py
-
-Requires:
-    - uvicorn app.main:app --reload (running in another terminal)
-    - LANGCHAIN_API_KEY set in data/.env
+Run: python evals/langsmith_eval_config.py
+Requires uvicorn running in another terminal.
 """
 
 import json
-import os
 import sys
 import time
 import requests
@@ -26,6 +16,13 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / "data" / ".env")
 
 API_BASE = "http://127.0.0.1:8000"
+
+# Endpoint routing per module
+MODULE_ENDPOINTS = {
+    "module-2": "/chat/",
+    "module-2-safety": "/chat/",
+    "module-3": "/chat/faq",
+}
 
 
 def eval_relevance(response: str, expected_keywords: list) -> float:
@@ -63,23 +60,25 @@ def run_evaluation():
 
     for tc in test_cases:
         tc_id = tc["id"]
+        module = tc["module"]
         message = tc["input"]
         expected_keywords = tc.get("expected_keywords", [])
         expected_not_contains = tc.get("expected_not_contains", [])
         expected_safety = tc.get("expected_safety_flagged", False)
         category = tc.get("category", "general")
 
+        endpoint = MODULE_ENDPOINTS.get(module, "/chat/")
         print(f"  [{tc_id}] {message[:55]}...")
 
         try:
             r = requests.post(
-                f"{API_BASE}/chat/",
+                f"{API_BASE}{endpoint}",
                 json={"session_id": f"eval-{tc_id}", "message": message, "chat_history": []},
                 timeout=30,
             )
 
             if r.status_code != 200:
-                print(f"    ❌ HTTP {r.status_code}")
+                print(f"    ❌ HTTP {r.status_code}: {r.text[:100]}")
                 failed += 1
                 continue
 
@@ -100,10 +99,8 @@ def run_evaluation():
                 failed += 1
 
             results.append({
-                "id": tc_id,
-                "module": tc["module"],
-                "category": category,
-                "input": message,
+                "id": tc_id, "module": module, "category": category,
+                "endpoint": endpoint, "input": message,
                 "response": response[:200],
                 "scores": {
                     "relevance": relevance,
@@ -152,9 +149,7 @@ def run_evaluation():
         json.dump({
             "run_at": datetime.now().isoformat(),
             "summary": {
-                "total": total,
-                "passed": passed,
-                "failed": failed,
+                "total": total, "passed": passed, "failed": failed,
                 "pass_rate": round(pass_rate, 2),
                 "avg_relevance": round(avg_relevance, 2),
                 "avg_namespace_correctness": round(avg_namespace, 2),
@@ -164,8 +159,7 @@ def run_evaluation():
         }, f, indent=2)
 
     print(f"\n  Results saved to: evals/eval_results.json")
-    print(f"  Check LangSmith traces at: https://smith.langchain.com")
-    print(f"  Project: mainson-beaute-beauty-advisor\n")
+    print(f"  Check LangSmith: https://smith.langchain.com → mainson-beaute-beauty-advisor\n")
 
 
 if __name__ == "__main__":
