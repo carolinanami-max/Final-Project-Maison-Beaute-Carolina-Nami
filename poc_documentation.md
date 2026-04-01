@@ -9,9 +9,9 @@
 
 ## 1. POC Overview
 
-The Maison Beauté AI Advisor Proof of Concept demonstrates a three-module AI system for a pre-loved luxury beauty marketplace. The POC is delivered in two complementary layers:
+The Maison Beauté AI Advisor Proof of Concept demonstrates a four-module AI system for a pre-loved luxury beauty marketplace. The POC is delivered in two complementary layers:
 
-- **MVP (Python/FastAPI + Streamlit):** Fully functional backend with interactive demo interface
+- **MVP (Python/FastAPI + Streamlit):** Fully functional backend with interactive 5-tab demo interface
 - **Low-code POC (n8n Cloud):** Visual workflow demonstration of the same logic for non-technical stakeholders
 
 Both layers are live and testable.
@@ -22,15 +22,15 @@ Both layers are live and testable.
 
 | Tool | Role |
 |---|---|
-| Python 3.13 + FastAPI | Backend API serving all 3 modules |
-| Streamlit | Customer-facing demo interface |
+| Python 3.13 + FastAPI | Backend API serving all 4 modules |
+| Streamlit | Customer-facing demo interface (5 tabs) |
 | LangChain + LangGraph | AI agent framework and RAG pipeline |
-| Claude Haiku (claude-haiku-4-5-20251001) | LLM for description generation and chatbot |
+| Claude Haiku (claude-haiku-4-5-20251001) | LLM for description generation, chatbot, and newsletter |
 | Perplexity API (sonar model) | Real-time ingredient lookup for Module 1 |
-| Pinecone (vector DB) | Knowledge base storage with namespaces |
-| HuggingFace all-MiniLM-L6-v2 | Local embedding model (384 dimensions) |
-| LangSmith | Observability and tracing |
-| n8n Cloud | Low-code workflow POC |
+| Pinecone (vector DB) | Knowledge base with separate namespaces (products + policies) |
+| HuggingFace all-MiniLM-L6-v2 | Local embedding model (384 dimensions, no API key needed) |
+| LangSmith | Observability and tracing (project: mainson-beaute-beauty-advisor) |
+| n8n Cloud | Low-code workflow POC + email automation |
 | GitHub | Version control |
 
 ---
@@ -189,16 +189,41 @@ Output: Full newsletter with subject line, preview text, body (3 paragraphs), an
 
 ---
 
+## 6. Newsletter Generator (Module 4)
+
+### What it does
+Generates on-brand Maison Beauté newsletters based on trending beauty topics and new arrivals. Supports English, German, French, and Portuguese. Output is download-ready for copy-editing and sending.
+
+### Endpoint
+`POST /newsletter/generate`
+
+### Demo test (tested and working)
+```
+Input:  trending_topics: ["glass skin", "sustainable beauty", "perfume layering"]
+        new_products: []
+        language: "English"
+
+Output: {
+  "subject_line": "Glass Skin & Layered Luxury: Spring's Glow-Up",
+  "preview_text": "Discover the art of perfume layering, glass skin secrets & pre-loved treasures that glow.",
+  "body": "3 on-brand paragraphs covering trends + sustainability angle",
+  "cta": "Explore our curated glass skin essentials — shop pre-loved luxury today."
+}
+```
+
+---
+
 ## 7. Streamlit Demo Interface
 
-The full system is accessible via a Streamlit web application with 4 tabs:
+The full system is accessible via a Streamlit web application with **5 tabs**:
 
-| Tab | Module |
-|---|---|
-| 🏪 Shop Manager | Module 1 |
-| 💬 Beauty Advisor | Module 2 |
-| 📦 Order Concierge | Module 3 |
-| 📧 Newsletter | Newsletter Generator |
+| Tab | Module | Capability |
+|---|---|---|
+| 🏪 Shop Manager | Module 1 | Product form → Perplexity → Claude Haiku → description |
+| 💬 Beauty Advisor | Module 2 | RAG chatbot over product catalogue, safety escalation |
+| 📋 FAQ & Policies | Module 3 | Quick chips + free-text FAQ over policies namespace |
+| 📦 Order Tracking | Module 3 | Order number → status + email confirmation |
+| ✉️ Newsletter | Module 4 | Topics + products → on-brand newsletter draft |
 
 **Run instructions:**
 ```bash
@@ -213,36 +238,56 @@ Access at: `http://localhost:8501`
 
 ---
 
-## 8. POC Scope Check
+## 8. n8n Email Integrations (Confirmed Working)
+
+Both n8n workflows are published and wired into FastAPI:
+
+**Module 2 Safety Alert:**
+- Trigger: allergy/health keyword detected in Beauty Advisor chat
+- Flow: FastAPI `escalate_node` → POST to `https://cvn.app.n8n.cloud/webhook/beauty-advisor` → Gmail alert to founder
+- Confirmed: Email received at carolinanami@gmail.com ✅
+
+**Module 3 Order Email:**
+- Trigger: order number submitted in Order Tracking tab
+- Flow: FastAPI `orders.py` → POST to `https://cvn.app.n8n.cloud/webhook/customer-service` → Gmail with order details
+- Subject: "Your Maison Beauté Order Update"
+- Confirmed: Email received at carolinanami@gmail.com ✅
+
+---
+
+## 9. POC Scope Check
 
 | Deliverable | Status |
 |---|---|
 | n8n workflows exported (JSON) | ✅ In `/n8n/` directory |
-| FastAPI MVP running | ✅ All 4 endpoints live |
-| Streamlit demo interface | ✅ 4 tabs, all working |
-| Module 1 tested end to end | ✅ |
-| Module 2 tested (normal query) | ✅ |
-| Module 2 tested (safety escalation) | ✅ |
-| Module 3 tested (order tracking) | ✅ |
-| Newsletter tested | ✅ |
-| LangSmith tracing active | ✅ |
+| FastAPI MVP running | ✅ All 5 endpoints live |
+| Streamlit demo interface | ✅ 5 tabs, all working |
+| Module 1 tested (Perplexity + description) | ✅ |
+| Module 2 tested (RAG beauty advice) | ✅ |
+| Module 2 tested (safety escalation + email) | ✅ |
+| Module 3 tested (order tracking + email) | ✅ |
+| Module 3 tested (FAQ RAG) | ✅ |
+| Module 4 tested (newsletter generation) | ✅ |
+| LangSmith tracing active | ✅ project: mainson-beaute-beauty-advisor |
 | Pinecone populated (2 namespaces) | ✅ products (30 chunks) · policies (31 chunks) |
 | GitHub committed | ✅ |
 
 ---
 
-## 9. What the Demo Shows
+## 10. What the Demo Shows
 
 A viewer watching the demo will see:
 
-1. **Shop Manager tab:** A product form is filled in with no ingredients provided. The system calls Perplexity in real time, fetches the ingredients automatically, and generates a complete SEO-optimised listing in under 30 seconds — including batch number tracking, expiry validation, and a pending review flag.
+1. **Shop Manager tab:** A product form is filled in with no ingredients provided. The system calls Perplexity in real time, fetches ingredients automatically, and generates a complete SEO-optimised listing in under 30 seconds — including batch number traceability, expiry validation, and a pending review flag.
 
-2. **Beauty Advisor tab:** A customer asks about dry skin. The chatbot retrieves relevant products from Pinecone and generates personalised recommendations (La Mer, NUXE, Buly 1803) with ingredient details. The same chatbot — when sent a message mentioning an allergy — immediately returns a safety holding response without calling the LLM, demonstrating the privacy-by-design safety layer.
+2. **Beauty Advisor tab:** A customer asks about dry skin. The chatbot retrieves relevant products from Pinecone (products namespace) and generates personalised recommendations. When sent a message mentioning an allergy, it immediately returns a safety holding response without calling the LLM — and an email fires to the founder via n8n.
 
-3. **Order Concierge tab:** A customer enters only their order number. The system returns a brief status in the chat and confirms that full details have been sent to their registered email — demonstrating zero PII in the chat interface.
+3. **FAQ & Policies tab:** Quick-access chips for common questions (returns, authenticity, conditions, shipping) plus free-text input — all answered from the Pinecone policies namespace.
 
-4. **Newsletter tab:** Trending topics are entered and a complete, on-brand newsletter is generated in seconds — ready for copy-editing and sending.
+4. **Order Tracking tab:** A customer enters only their order number. The system returns a brief status in chat and sends full details to their registered email — zero PII in the chat interface.
+
+5. **Newsletter tab:** Trending topics entered → complete on-brand newsletter generated in seconds with subject line, preview text, body, and CTA. Downloadable as .txt.
 
 ---
 
-*POC Documentation v1.0 | Maison Beauté AI Advisor | Ironhack Berlin, March 2026*
+*POC Documentation v2.0 | Maison Beauté AI Advisor | Ironhack Berlin, March 2026*

@@ -1,60 +1,124 @@
 [
   {
-    "id": "tc-001",
-    "module": "M2",
-    "input": "Does the Charlotte Tilbury Magic Cream work for dry skin?",
-    "expected_output": "Yes, the Magic Cream is formulated for dry and combination skin types. Its key ingredients include Hyaluronic Acid for deep hydration and Rose Hip Oil to nourish and restore the skin barrier.",
-    "tags": ["product-advice", "skin-type"]
+    "id": "M2-001",
+    "module": "module-2",
+    "input": "What skincare products do you have for dry skin?",
+    "expected_keywords": ["La Mer", "NUXE", "hydrat", "moisture", "dry"],
+    "expected_not_contains": ["return policy", "shipping", "order"],
+    "category": "product_recommendation"
   },
   {
-    "id": "tc-002",
-    "module": "M2",
-    "input": "What is your return policy for pre-loved items?",
-    "expected_output": "Pre-loved items at Maison Beauté are carefully checked before listing. Returns are accepted within 14 days if the item does not match its described condition.",
-    "tags": ["policy", "returns"]
+    "id": "M2-002",
+    "module": "module-2",
+    "input": "Tell me about the Tom Ford Tobacco Oud fragrance",
+    "expected_keywords": ["Tom Ford", "Tobacco", "Oud", "fragrance"],
+    "expected_not_contains": ["return", "shipping", "order number"],
+    "category": "product_information"
   },
   {
-    "id": "tc-003",
-    "module": "M2",
-    "input": "I have a nut allergy, is the Magic Cream safe for me?",
-    "expected_output": "ESCALATION — safety flag should trigger, no LLM response",
+    "id": "M2-003",
+    "module": "module-2",
+    "input": "What is good for anti-aging?",
+    "expected_keywords": ["serum", "anti-aging", "Niance", "La Mer", "NUXE"],
+    "expected_not_contains": ["return policy", "order", "shipping"],
+    "category": "product_recommendation"
+  },
+  {
+    "id": "M2-004",
+    "module": "module-2",
+    "input": "Do you have any makeup for a natural look?",
+    "expected_keywords": ["SAIE", "Rabanne", "natural", "foundation", "blush"],
+    "expected_not_contains": ["return policy", "order number"],
+    "category": "product_recommendation"
+  },
+  {
+    "id": "M2-005",
+    "module": "module-2",
+    "input": "What lipsticks do you carry?",
+    "expected_keywords": ["Dior", "Charlotte Tilbury", "lipstick", "lip"],
+    "expected_not_contains": ["return policy", "shipping"],
+    "category": "product_information"
+  },
+  {
+    "id": "M2-006",
+    "module": "module-2",
+    "input": "I have oily skin, what do you recommend?",
+    "expected_keywords": ["oily", "La Mer Sun", "Allies of Skin"],
+    "expected_not_contains": ["return policy", "order number"],
+    "category": "product_recommendation"
+  },
+  {
+    "id": "M2-007",
+    "module": "module-2",
+    "input": "Tell me about the Xerjoff NAXOS perfume",
+    "expected_keywords": ["Xerjoff", "NAXOS", "bergamot", "vanilla", "Mediterranean"],
+    "expected_not_contains": ["return", "shipping", "order"],
+    "category": "product_information"
+  },
+  {
+    "id": "M2-008",
+    "module": "module-2",
+    "input": "What body care products do you have?",
+    "expected_keywords": ["Buly", "body", "lotion", "rose"],
+    "expected_not_contains": ["return policy", "order number"],
+    "category": "product_recommendation"
+  },
+  {
+    "id": "M3-001",
+    "module": "module-3",
+    "input": "What is your return policy?",
+    "expected_keywords": ["return", "C2C", "private", "quality", "condition"],
+    "expected_not_contains": ["La Mer", "lipstick", "fragrance"],
+    "category": "policy"
+  },
+  {
+    "id": "M3-002",
+    "module": "module-3",
+    "input": "How do you verify that products are authentic?",
+    "expected_keywords": ["authentic", "quality", "expert", "check", "genuine"],
+    "expected_not_contains": ["lipstick", "fragrance", "skin"],
+    "category": "policy"
+  },
+  {
+    "id": "M3-003",
+    "module": "module-3",
+    "input": "What does Pre-loved mean?",
+    "expected_keywords": ["Pre-loved", "50%", "condition", "quality", "hygiene"],
+    "expected_not_contains": ["La Mer", "order number", "shipping"],
+    "category": "policy"
+  },
+  {
+    "id": "M3-004",
+    "module": "module-3",
+    "input": "Do you ship internationally?",
+    "expected_keywords": ["international", "Germany", "EU", "shipping"],
+    "expected_not_contains": ["lipstick", "fragrance", "La Mer"],
+    "category": "policy"
+  },
+  {
+    "id": "M3-005",
+    "module": "module-3",
+    "input": "Is it safe to buy pre-owned cosmetics?",
+    "expected_keywords": ["safe", "quality", "hygiene", "authentic", "check"],
+    "expected_not_contains": ["La Mer", "lipstick", "order number"],
+    "category": "policy"
+  },
+  {
+    "id": "SAFETY-001",
+    "module": "module-2-safety",
+    "input": "I have a nut allergy, is this product safe for me?",
+    "expected_keywords": ["safety", "priority", "team", "contact"],
+    "expected_not_contains": ["La Mer", "ingredients", "recommend"],
     "expected_safety_flagged": true,
-    "tags": ["safety", "allergy", "escalation"]
+    "category": "safety_escalation"
   },
   {
-    "id": "tc-004",
-    "module": "M2",
-    "input": "Do you ship to Portugal?",
-    "expected_output": "Yes, Maison Beauté ships across the EU including Portugal. Shipping times and rates are available at checkout.",
-    "tags": ["shipping", "policy"]
-  },
-  {
-    "id": "tc-005",
-    "module": "M2",
-    "input": "I had a bad reaction to the serum I bought",
-    "expected_output": "ESCALATION — safety flag should trigger, no LLM response",
+    "id": "SAFETY-002",
+    "module": "module-2-safety",
+    "input": "I used a product and got a rash, what should I do?",
+    "expected_keywords": ["safety", "priority", "team", "emergency"],
+    "expected_not_contains": ["recommend", "product", "La Mer"],
     "expected_safety_flagged": true,
-    "tags": ["safety", "reaction", "escalation"]
-  },
-  {
-    "id": "tc-006",
-    "module": "M3",
-    "input": "MB-ORD-20241127-0042",
-    "expected_output": "Your order is on its way! 📦",
-    "tags": ["order-tracking"]
-  },
-  {
-    "id": "tc-007",
-    "module": "M2",
-    "input": "What ingredients should I avoid if I have sensitive skin?",
-    "expected_output": "For sensitive skin, it is generally advisable to avoid products with heavy fragrances, alcohol, and strong exfoliants like AHAs at high concentrations. We recommend checking the full ingredient list of each product on the listing page.",
-    "tags": ["product-advice", "sensitive-skin"]
-  },
-  {
-    "id": "tc-008",
-    "module": "M2",
-    "input": "Is buying pre-loved beauty sustainable?",
-    "expected_output": "Absolutely. Buying pre-loved beauty reduces waste and extends the life cycle of luxury products. Every purchase on Maison Beauté contributes to a more circular approach to beauty consumption.",
-    "tags": ["sustainability", "brand-values"]
+    "category": "safety_escalation"
   }
 ]

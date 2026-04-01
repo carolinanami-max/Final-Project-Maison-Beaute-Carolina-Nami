@@ -55,7 +55,7 @@ chain = NEWSLETTER_PROMPT | llm
 
 
 @router.post("/generate", response_model=NewsletterResponse)
-@traceable(name="generate_newsletter", tags=["newsletter"])
+@traceable(name="generate_newsletter", tags=["module-4", "newsletter"])
 async def generate_newsletter(request: NewsletterRequest) -> NewsletterResponse:
     """Generate a Maison Beauté newsletter based on trending topics and new products."""
     try:

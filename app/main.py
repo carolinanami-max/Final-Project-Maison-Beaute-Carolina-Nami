@@ -52,25 +52,25 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Maison Beauté AI Advisor",
-    description="Privacy-first AI system for pre-loved luxury beauty — Modules 1, 2 & 3",
-    version="1.0.0",
+    description="Privacy-first AI system for pre-loved luxury beauty — Modules 1, 2, 3 & Newsletter",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
 # ─── Routers ──────────────────────────────────────────────────
 app.include_router(descriptions.router, prefix="/products",   tags=["Module 1 — Shop Manager"])
 app.include_router(chatbot.router,      prefix="/chat",        tags=["Module 2 — Beauty Advisor"])
-app.include_router(orders.router,       prefix="/orders",      tags=["Module 3 — Order Concierge"])
-app.include_router(newsletter.router,   prefix="/newsletter",  tags=["Newsletter Generator"])
+app.include_router(orders.router,       prefix="/orders",      tags=["Module 3 — Customer Self-Service"])
+app.include_router(newsletter.router,   prefix="/newsletter",  tags=["Module 4 — Newsletter Generator"])
 
 
 @app.get("/", tags=["Health"])
 async def root():
     return {
         "service": "Maison Beauté AI Advisor",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "status": "running",
-        "modules": ["M1 Shop Manager", "M2 Beauty Advisor", "M3 Order Concierge"],
+        "modules": ["M1 Shop Manager", "M2 Beauty Advisor", "M3 Customer Self-Service", "M4 Newsletter Generator"],
     }
 
 
