@@ -5,17 +5,20 @@ Run: streamlit run streamlit_app.py
 Requires: FastAPI backend at http://127.0.0.1:8000
 """
 
+import os
 import streamlit as st
 import requests
 import uuid
 import json
-import os
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-API_BASE = "http://127.0.0.1:8000"
+try:
+    API_BASE = st.secrets["API_BASE"]
+except:
+    API_BASE = os.getenv("API_BASE", "http://127.0.0.1:8000")
 
 DARK   = "#1A1A2E"
 PURPLE = "#2D1B4E"
