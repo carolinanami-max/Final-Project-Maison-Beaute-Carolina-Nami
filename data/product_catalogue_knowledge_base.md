@@ -44,7 +44,10 @@ Tom Ford Tobacco Oud combines warm tobacco notes with the exotic aroma of oud wo
 
 ### U Beauty — RESURFACING COMPOUND Serum
 **Category:** Skin-care
+**Size:** 50 ml
 **Condition options:** New · Tested Out
+**SKU:** WI-000000440
+**Image:** sku_u_beauty_u_beauty_resurfacing_compound_serum_50_ml_WI-000000440_8-xlarge.webp
 
 **Description:**
 U Beauty's RESURFACING COMPOUND is a multifunctional serum of the highest class. This highly effective formula combines the effect of up to eight products in a single step: it brightens, renews, firms and evens the complexion. Visible improvement in skin texture within three days, with refined pores and reduced fine lines.
@@ -54,6 +57,8 @@ U Beauty's RESURFACING COMPOUND is a multifunctional serum of the highest class.
 **Best for:** All skin types, especially those seeking anti-aging benefits, brightening, and pore refinement. Suitable for sensitive skin.
 
 **How to use:** Apply morning or evening to clean skin before moisturiser.
+
+**Sustainability note:** Pre-loved U Beauty is a rare find — this cult serum retails for over €150, making a pre-loved listing exceptional value for a clinically-proven formula.
 
 ---
 
@@ -101,6 +106,8 @@ This highly effective anti-aging serum stimulates the skin's microcirculation, g
 **Category:** Skin-care
 **Size:** 100 ml
 **Condition options:** New · Tested Out · Pre-loved
+**SKU:** WI-000000148
+**Image:** sku_la_mer_the_treatment_lotion_100_ml_WI-000000148_11-xlarge.webp
 
 **Description:**
 The Treatment Lotion offers a refreshing energy and moisture boost for the skin through its innovative water-based formula, revitalising it throughout the day. As the ideal starting point of the skincare routine after cleansing, it optimises the effectiveness of subsequent care steps. Contains a higher concentration of the legendary Miracle Broth™, enabling the Life-Force Ferment to create a reservoir of energy directed precisely where it is most needed.
@@ -108,6 +115,8 @@ The Treatment Lotion offers a refreshing energy and moisture boost for the skin 
 **Key Ingredients:** Miracle Broth™ (Sea Kelp, Lime Tea Extract), Life-Force Ferment, hydrating actives
 
 **Best for:** All skin types, especially dry or devitalised skin. Use as first step after cleansing.
+
+**Sustainability note:** La Mer's Treatment Lotion is one of the most sought-after pre-loved finds on Maison Beauté — luxury hydration at a sustainable price point.
 
 ---
 
@@ -218,6 +227,28 @@ The exquisite LES MAINS HERMÈS nail polish — a completion of French craftsman
 **Best for:** Those who appreciate luxury nail colour with a high-fashion aesthetic. Long-lasting formula.
 
 **Hygiene note:** Available in New condition only as per Maison Beauté policy for nail products.
+
+---
+
+### Lancôme — Lip Idôle JuicyTreat Lip Gloss — 90 Berry Bisou
+**Category:** Make-up
+**Size:** 8.5 ml
+**Condition options:** New · Tested Out
+**SKU:** WI-000002100
+**Image:** sku_lancome_90_berry_bisou_WI-000002100_1-xlarge.webp
+
+**Description:**
+The Lancôme Lip Idôle JuicyTreat is a next-generation lip gloss that delivers the glossy brilliance of a traditional lip gloss with the nourishing care of a treatment. Formulated with 20% Squalane, it provides up to 24 hours of hydration while delivering a luscious shine. Shade 90 Berry Bisou is a deep, rich berry — sophisticated, bold, and effortlessly Parisian.
+
+**Key Ingredients:** 20% Squalane, Luicy Shine Oil (30% gloss oil)
+
+**Finish:** High-shine gloss with deep berry pigmentation
+
+**Best for:** Those who want intense colour payoff with serious lip care. The deep berry shade suits medium to deep skin tones beautifully, and works equally well as a standalone gloss or layered over a lip liner for a defined look.
+
+**How to use:** Apply directly from the doe-foot applicator for a glossy, plump finish. Layer for deeper colour intensity.
+
+**Sustainability note:** A pre-loved Lancôme lip gloss in near-new condition is an exceptional circular beauty find — luxury Parisian colour at a fraction of the boutique price.
 
 ---
 
