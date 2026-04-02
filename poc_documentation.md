@@ -11,7 +11,7 @@
 
 The Maison Beauté AI Advisor Proof of Concept demonstrates a four-module AI system for a pre-loved luxury beauty marketplace. The POC is delivered in two complementary layers:
 
-- **MVP (Python/FastAPI + Streamlit):** Fully functional backend with interactive 5-tab demo interface
+- **MVP (Python/FastAPI + Streamlit):** Fully functional backend with a premium 6-page sidebar UI, deployed on Railway (API) and Streamlit Community Cloud (frontend)
 - **Low-code POC (n8n Cloud):** Visual workflow demonstration of the same logic for non-technical stakeholders
 
 Both layers are live and testable.
@@ -23,7 +23,10 @@ Both layers are live and testable.
 | Tool | Role |
 |---|---|
 | Python 3.13 + FastAPI | Backend API serving all 4 modules |
-| Streamlit | Customer-facing demo interface (5 tabs) |
+| Streamlit | Premium 6-page sidebar UI (editorial dark-navy, Playfair Display + Inter) |
+| Railway | FastAPI backend deployment (nixpacks, auto-healthcheck) |
+| Streamlit Community Cloud | Frontend deployment (connects to Railway API via st.secrets) |
+| Plotly | Interactive charts: bar, line, donut — brand-color palette throughout |
 | LangChain + LangGraph | AI agent framework and RAG pipeline |
 | Claude Haiku (claude-haiku-4-5-20251001) | LLM for description generation, chatbot, and newsletter |
 | Perplexity API (sonar model) | Real-time ingredient lookup for Module 1 |
@@ -175,33 +178,49 @@ Output: "Your order is on its way! 📦 Full tracking details have been sent to 
 
 ---
 
-## 6. Newsletter Generator
-
-### What it does
-Generates on-brand Maison Beauté newsletters based on trending beauty topics and new arrivals. Supports multiple languages.
-
-### Demo test (tested and working)
-```
-Topics: glass skin, sustainable beauty, perfume layering
-Output: Full newsletter with subject line, preview text, body (3 paragraphs), and CTA
-        — on-brand, French-inflected, sustainability angle included
-```
-
----
-
 ## 6. Newsletter Generator (Module 4)
 
 ### What it does
-Generates on-brand Maison Beauté newsletters based on trending beauty topics and new arrivals. Supports English, German, French, and Portuguese. Output is download-ready for copy-editing and sending.
+Generates on-brand Maison Beauté newsletters based on trending beauty topics and new arrivals. Supports English, German, French, and Portuguese. Output is download-ready. The Newsletter Studio page in Streamlit provides a full marketing tool interface with segment-aware delivery.
 
 ### Endpoint
 `POST /newsletter/generate`
 
+### Request body
+```json
+{
+  "trending_topics": ["glass skin", "sustainable beauty", "perfume layering"],
+  "new_products": ["Lancôme Lip Idôle JuicyTreat", "La Mer The Treatment Lotion"],
+  "language": "English",
+  "send_email": false
+}
+```
+
+`send_email: true` triggers the n8n newsletter webhook and delivers the email to the selected customer segment. The Streamlit UI exposes two separate buttons: **Generate Newsletter** (`send_email: false` — preview only) and **Send to Segment** (`send_email: true` — triggers delivery).
+
+### SKU picker (Streamlit Newsletter Studio)
+Three pre-loaded products selectable via checkbox:
+| Product | SKU | Category |
+|---|---|---|
+| Lancôme Lip Idôle JuicyTreat | WI-000002100 | MAKE-UP |
+| La Mer The Treatment Lotion | WI-000000148 | SKIN-CARE |
+| U Beauty Resurfacing Compound | WI-000000440 | SKIN-CARE |
+
+### Segment recipient counts (mock)
+| Segment | Recipients |
+|---|---|
+| All subscribers | 1,240 |
+| Skincare enthusiasts | 380 |
+| Fragrance collectors | 210 |
+| New customers | 95 |
+| VIP members | 45 |
+
 ### Demo test (tested and working)
 ```
 Input:  trending_topics: ["glass skin", "sustainable beauty", "perfume layering"]
-        new_products: []
+        new_products: ["La Mer The Treatment Lotion"]
         language: "English"
+        send_email: false
 
 Output: {
   "subject_line": "Glass Skin & Layered Luxury: Spring's Glow-Up",
@@ -213,19 +232,28 @@ Output: {
 
 ---
 
-## 7. Streamlit Demo Interface
+## 7. Streamlit Demo Interface (v3.0)
 
-The full system is accessible via a Streamlit web application with **5 tabs**:
+The full system is accessible via a premium Streamlit web application with **6 pages via sidebar navigation**. The UI uses an editorial dark-navy aesthetic (Playfair Display + Inter fonts, rose/gold/cream palette) designed to feel like a luxury brand tool, not a developer demo.
 
-| Tab | Module | Capability |
+### Sidebar
+- Maison Beauté logo + tech-stack pills
+- Nav-link radio (rose active indicator on selected page)
+- System status strip: LangSmith ON · Pinecone 2 namespaces · n8n 3 workflows
+- Live metrics strip: total queries / safety flags / newsletters sent (from `st.session_state`)
+
+### Pages
+
+| Page | Module | Capability |
 |---|---|---|
-| 🏪 Shop Manager | Module 1 | Product form → Perplexity → Claude Haiku → description |
-| 💬 Beauty Advisor | Module 2 | RAG chatbot over product catalogue, safety escalation |
-| 📋 FAQ & Policies | Module 3 | Quick chips + free-text FAQ over policies namespace |
-| 📦 Order Tracking | Module 3 | Order number → status + email confirmation |
-| ✉️ Newsletter | Module 4 | Topics + products → on-brand newsletter draft |
+| 🏪 Shop Manager | Module 1 | Full product form → `POST /products/generate-description` → Playfair Display product card + SEO pill tags + plotly bar chart of products generated by category this session |
+| 💬 Beauty Advisor | Module 2 | Chat bubbles (user/bot/escalated-red) + 4 quick chips + right-panel analytics (message count, safety flags, avg response length, message-type donut chart) |
+| 📋 FAQ & Policies | Module 3 | 4 policy quick chips + chat → `POST /chat/faq` + FAQ Topics Coverage donut (Returns 30%, Authenticity 25%, Shipping 20%, Conditions 15%, Other 10%) |
+| 📦 Order Tracking | Module 3 | Order number input → `POST /orders/track` → 4-step status timeline (Order Placed → Processing → Shipped → Delivered) with gold/green step highlighting + privacy notice |
+| ✉ Newsletter Studio | Module 4 | SKU checkbox picker (3 products with badges), segment dropdown, personalisation toggle + discount code field, Generate/Send buttons → right panel with subject line, body (rendered markdown), product cards, recipient count badge, green delivery confirmation on send |
+| 📊 Analytics | — | 4 KPI cards, 7-day LLM calls area chart, calls-by-module bar chart, eval results table from `evals/eval_results.json`, pass-rate donut by category |
 
-**Run instructions:**
+**Run instructions (local):**
 ```bash
 # Terminal 1 — FastAPI backend
 uvicorn app.main:app --reload
@@ -235,6 +263,10 @@ streamlit run streamlit_app.py
 ```
 
 Access at: `http://localhost:8501`
+
+**Production URLs:**
+- FastAPI: `https://<app>.up.railway.app` (Railway)
+- Streamlit: `https://<app>.streamlit.app` (Streamlit Community Cloud)
 
 ---
 
@@ -261,16 +293,20 @@ Both n8n workflows are published and wired into FastAPI:
 |---|---|
 | n8n workflows exported (JSON) | ✅ In `/n8n/` directory |
 | FastAPI MVP running | ✅ All 5 endpoints live |
-| Streamlit demo interface | ✅ 5 tabs, all working |
+| Streamlit demo interface | ✅ 6-page sidebar UI, all pages working |
+| Railway deployment config | ✅ `railway.toml` + `nixpacks.toml` |
 | Module 1 tested (Perplexity + description) | ✅ |
 | Module 2 tested (RAG beauty advice) | ✅ |
 | Module 2 tested (safety escalation + email) | ✅ |
 | Module 3 tested (order tracking + email) | ✅ |
 | Module 3 tested (FAQ RAG) | ✅ |
 | Module 4 tested (newsletter generation) | ✅ |
+| Module 4 tested (send_email: true → n8n) | ✅ |
+| Analytics dashboard (Page 6) | ✅ eval_results.json + plotly charts |
 | LangSmith tracing active | ✅ project: mainson-beaute-beauty-advisor |
+| LangSmith evaluations (22 cases, 100% pass) | ✅ `evals/eval_results.json` |
 | Pinecone populated (2 namespaces) | ✅ products (30 chunks) · policies (31 chunks) |
-| GitHub committed | ✅ |
+| GitHub committed + pushed | ✅ |
 
 ---
 
@@ -278,16 +314,18 @@ Both n8n workflows are published and wired into FastAPI:
 
 A viewer watching the demo will see:
 
-1. **Shop Manager tab:** A product form is filled in with no ingredients provided. The system calls Perplexity in real time, fetches ingredients automatically, and generates a complete SEO-optimised listing in under 30 seconds — including batch number traceability, expiry validation, and a pending review flag.
+1. **Shop Manager (Page 1):** A product form is filled in with no ingredients provided. The system calls Perplexity in real time, fetches ingredients automatically, and generates a complete SEO-optimised listing in under 30 seconds — rendered as an elegant product card with Playfair Display title, SEO pill tags, batch traceability, and a pending review badge. A live plotly bar chart below shows products generated by category this session.
 
-2. **Beauty Advisor tab:** A customer asks about dry skin. The chatbot retrieves relevant products from Pinecone (products namespace) and generates personalised recommendations. When sent a message mentioning an allergy, it immediately returns a safety holding response without calling the LLM — and an email fires to the founder via n8n.
+2. **Beauty Advisor (Page 2):** A customer asks about dry skin. The chatbot retrieves relevant products from Pinecone (products namespace) and generates personalised recommendations in styled chat bubbles. A right-side analytics panel shows message count, safety flags triggered, and average response length live. When sent a message mentioning an allergy, it immediately returns a flagged response (red bubble, shield icon) without calling the LLM — and an email fires to the founder via n8n.
 
-3. **FAQ & Policies tab:** Quick-access chips for common questions (returns, authenticity, conditions, shipping) plus free-text input — all answered from the Pinecone policies namespace.
+3. **FAQ & Policies (Page 3):** Four quick-chip buttons for the most common questions (Return policy, Authenticity, Pre-loved, International shipping) fire instantly. Free-text input is also available. A donut chart shows FAQ topic distribution. All answers are grounded in the Pinecone policies namespace.
 
-4. **Order Tracking tab:** A customer enters only their order number. The system returns a brief status in chat and sends full details to their registered email — zero PII in the chat interface.
+4. **Order Tracking (Page 4):** A customer enters only their order number. The system returns a brief status and renders a 4-step visual timeline (Order Placed → Processing → Shipped → Delivered) with the current step highlighted in green and completed steps in gold. Full details are sent to the customer's registered email — zero PII in the UI.
 
-5. **Newsletter tab:** Trending topics entered → complete on-brand newsletter generated in seconds with subject line, preview text, body, and CTA. Downloadable as .txt.
+5. **Newsletter Studio (Page 5):** Trending topics are entered, three featured products selected by checkbox (with SKU badges), a customer segment chosen, and a personalisation toggle enables a discount code field. Clicking **Generate Newsletter** renders the full newsletter live on the right — subject line in Playfair Display, body as rendered markdown, three product cards with gradient placeholders. Clicking **Send to Segment** triggers `send_email: true`, shows a green delivery confirmation badge with recipient count (e.g. "Skincare enthusiasts — 380 recipients · Delivered via n8n").
+
+6. **Analytics Dashboard (Page 6):** Four KPI cards at a glance (Total LLM Calls, Avg Latency, Safety Flags, Newsletters Sent). A 7-day area line chart shows daily call volume. A module bar chart shows live session usage. The evaluation results table loads the actual 22 test cases from `evals/eval_results.json` with pass/fail badges and safety flags highlighted. A donut chart shows pass rate by evaluation category.
 
 ---
 
-*POC Documentation v2.0 | Maison Beauté AI Advisor | Ironhack Berlin, March 2026*
+*POC Documentation v3.0 | Maison Beauté AI Advisor | Ironhack Berlin, April 2026*

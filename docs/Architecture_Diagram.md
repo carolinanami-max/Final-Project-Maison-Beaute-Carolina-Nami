@@ -1,29 +1,31 @@
 # Maison Beauté AI Advisor — Architecture Diagram
 
-**Version:** 2.0 | **Date:** March 2026
+**Version:** 3.0 | **Date:** April 2026
 
 ---
 
 ## High-Level System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     MAISON BEAUTÉ AI ADVISOR                         │
-│                    Streamlit Interface (5 tabs)                       │
-├──────────────┬──────────────┬──────────────┬───────────────────────┤
-│  MODULE 1    │  MODULE 2    │  MODULE 3    │  MODULE 4             │
-│  Shop        │  Beauty      │  Customer    │  Newsletter           │
-│  Manager     │  Advisor     │  Self-Service│  Generator            │
-├──────────────┼──────────────┼──────────────┼───────────────────────┤
-│ /products/   │ /chat/       │ /orders/     │ /newsletter/          │
-│ generate-    │              │ track        │ generate              │
-│ description  │              │              │                       │
-└──────┬───────┴──────┬───────┴──────┬───────┴───────────┬───────────┘
-       │              │              │                   │
-       ▼              ▼              ▼                   ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                     MAISON BEAUTÉ AI ADVISOR — v3.0                          │
+│              Streamlit UI (6-page sidebar · dark navy editorial)              │
+├─────────────┬─────────────┬────────────┬─────────────┬──────────┬───────────┤
+│  PAGE 1     │  PAGE 2     │  PAGE 3    │  PAGE 4     │  PAGE 5  │  PAGE 6   │
+│  Shop       │  Beauty     │  FAQ &     │  Order      │  News-   │  Analytics│
+│  Manager    │  Advisor    │  Policies  │  Tracking   │  letter  │  Dashboard│
+├─────────────┼─────────────┼────────────┼─────────────┼──────────┼───────────┤
+│ POST        │ POST        │ POST       │ POST        │ POST     │  Local    │
+│ /products/  │ /chat/      │ /chat/faq  │ /orders/    │ /news-   │  eval_    │
+│ generate-   │             │            │ track       │ letter/  │  results. │
+│ description │             │            │             │ generate │  json     │
+└──────┬──────┴──────┬──────┴─────┬──────┴──────┬──────┴────┬─────┴───────────┘
+       │              │              │                   │           │
+       ▼              ▼              ▼                   ▼           │
 ┌──────────────────────────────────────────────────────────────────────┐
-│                    FASTAPI BACKEND (Python 3.13)                      │
-│                    uvicorn · http://127.0.0.1:8000                    │
+│             FASTAPI BACKEND (Python 3.13 · uvicorn)                  │
+│     LOCAL: http://127.0.0.1:8000                                     │
+│     PROD:  https://<app>.up.railway.app  (Railway deployment)        │
 └──────┬───────────────┬──────────────┬──────────────────┬────────────┘
        │               │              │                  │
        ▼               ▼              ▼                  ▼
@@ -136,14 +138,67 @@ FAQ: POST /chat/ {message} → Pinecone (namespace: policies)
 ## Data Flow — Module 4 (Newsletter Generator)
 
 ```
-POST /newsletter/generate {trending_topics[], new_products[], language}
+POST /newsletter/generate
+     {trending_topics[], new_products[], language, send_email: bool}
         │
         ▼ Claude Haiku → newsletter generation
           (brand voice, sustainability angle, JSON schema)
         │
         ▼ Strip markdown → parse JSON
         │
-        ▼ Return: {subject_line, preview_text, body, cta}
+        ├── send_email: false → Return preview only
+        │   {subject_line, preview_text, body, cta}
+        │
+        └── send_email: true  → POST n8n newsletter webhook
+                │               → Email delivered to segment
+                ▼
+            Return: {subject_line, preview_text, body, cta}
+            (+ delivery confirmation shown in Streamlit UI)
+```
+
+Streamlit Newsletter Studio (Page 5):
+- "✦ Generate Newsletter" → send_email: false (preview only)
+- "✉ Send to Segment"     → send_email: true  (triggers n8n + email)
+- Segment selector drives displayed recipient count (mock: All=1240 … VIP=45)
+
+---
+
+## Page 6 — Analytics Dashboard (Streamlit-only, no backend call)
+
+```
+Analytics data sources:
+  ├── Mock fixed values: Total LLM Calls (847), Avg Latency (1.8s)
+  ├── Session state counters: safety_flags, newsletters_sent (live)
+  ├── Line chart: daily LLM calls last 7 days (mock Mon-Sun)
+  ├── Bar chart: calls by module (M1/M2/M3-FAQ/M3-Orders/M4)
+  │             — live counts from session_state chat histories
+  ├── evals/eval_results.json → eval results table (22 real cases)
+  │   (falls back to 5 mock rows if file absent)
+  └── Donut chart: eval pass rate by category
+      (product_recommendation / product_information / policy /
+       safety_escalation / brand_values — computed from json)
+```
+
+---
+
+## Deployment Architecture (v3.0)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PRODUCTION (v3.0)                             │
+│                                                                   │
+│  GitHub (main branch)                                            │
+│       │                                                           │
+│       ├──▶  Railway                                              │
+│       │        nixpacks.toml (python313 + gcc + pip install)     │
+│       │        railway.toml  (uvicorn start + healthcheck)       │
+│       │        ▶ FastAPI backend at railway.app URL              │
+│       │                                                           │
+│       └──▶  Streamlit Community Cloud                            │
+│                streamlit_app.py                                   │
+│                st.secrets["API_BASE"] = railway.app URL          │
+│                ▶ Streamlit UI at streamlit.app URL               │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---

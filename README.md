@@ -30,7 +30,8 @@ Maison Beauté AI Advisor is a four-module AI system built for a pre-loved luxur
 | Observability | LangSmith (project: mainson-beaute-beauty-advisor) |
 | Automation | n8n Cloud (safety alerts + order emails via Gmail) |
 | Backend | Python 3.13 + FastAPI |
-| Frontend | Streamlit (5-tab demo interface) |
+| Frontend | Streamlit (6-page sidebar UI — editorial dark-navy aesthetic) |
+| Deployment | Railway (FastAPI) + Streamlit Community Cloud (UI) |
 
 ---
 
@@ -57,7 +58,7 @@ PINECONE_HOST=https://maison-beaute-advisor-xxxx.svc.aped-xxxx.pinecone.io
 PINECONE_INDEX_NAME=maison-beaute-advisor
 ```
 
-### Run the system
+### Run the system locally
 
 ```bash
 # Terminal 1 — FastAPI backend
@@ -69,6 +70,42 @@ streamlit run streamlit_app.py
 
 **FastAPI Swagger UI:** http://127.0.0.1:8000/docs
 **Streamlit demo:** http://localhost:8501
+
+---
+
+## Deployment
+
+### FastAPI → Railway
+
+1. Push this repo to GitHub.
+2. Create a new Railway project → **Deploy from GitHub repo**.
+3. Add all environment variables from `data/.env` in the Railway dashboard under **Variables**.
+4. Railway auto-detects `railway.toml` and `nixpacks.toml` — no further config needed.
+5. Railway assigns a public URL (e.g. `https://maison-beaute-production.up.railway.app`).
+
+`railway.toml` configures the start command and healthcheck:
+```toml
+[deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+```
+
+### Streamlit UI → Streamlit Community Cloud
+
+1. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
+2. Select this GitHub repo, branch `main`, main file `streamlit_app.py`.
+3. Under **Advanced settings → Secrets**, add:
+   ```toml
+   API_BASE = "https://your-app.up.railway.app"
+   ```
+4. Update `API_BASE` in `streamlit_app.py` to read from `st.secrets` for production:
+   ```python
+   API_BASE = st.secrets.get("API_BASE", "http://127.0.0.1:8000")
+   ```
+5. Deploy — Streamlit Community Cloud provisions the app and provides a public URL.
+
+> **Local dev:** `API_BASE` defaults to `http://127.0.0.1:8000` when secrets are absent, so local development works without any changes.
 
 ### Expected startup output
 
@@ -93,7 +130,7 @@ With uvicorn running in another terminal:
 python evals/langsmith_eval_config.py
 ```
 
-Runs 15 golden test cases across Modules 2 and 3. Results saved to `evals/eval_results.json` and all traces appear in LangSmith.
+Runs 22 golden test cases across Modules 2 and 3 (product recommendation, product information, policy, safety escalation, brand values). Results saved to `evals/eval_results.json` and all traces appear in LangSmith. The Analytics Dashboard (Page 6 in Streamlit) loads this file live.
 
 ---
 
@@ -101,7 +138,9 @@ Runs 15 golden test cases across Modules 2 and 3. Results saved to `evals/eval_r
 
 ```
 maison-beaute-ai-advisor/
-├── streamlit_app.py                     # 5-tab Streamlit demo
+├── streamlit_app.py                     # 6-page sidebar Streamlit UI (v3)
+├── railway.toml                         # Railway deployment config
+├── nixpacks.toml                        # Nixpacks build config (python313 + gcc)
 ├── poc_documentation.md                 # POC documentation
 ├── roi_risk_assessment.md               # ROI & risk matrix
 ├── Maison_Beaute_PROJECT_DOCUMENTATION.md  # Full project docs
