@@ -2,8 +2,8 @@
 
 **Document ID:** MB-AI-CA-2026-001
 **System Name:** Maison Beauté AI Advisor
-**Version:** 2.0
-**Date:** March 2026
+**Version:** 3.0
+**Date:** April 2026
 **Prepared by:** Carolina, AI Consultant (namiaistudio.com)
 **Ironhack AI Consulting & Integration Bootcamp — Final Project**
 
@@ -127,8 +127,42 @@ Annual review of this classification will be conducted as:
 | Anthropic | Claude Haiku (claude-haiku-4-5-20251001) | General Purpose AI (GPAI) | Anthropic maintains GPAI compliance documentation |
 | Perplexity | Sonar search model | General use | Used for factual ingredient lookup only |
 | LangChain/LangSmith | Observability platform | Not an AI system per se | Data processor under GDPR |
+| FastEmbed (Qdrant) | all-MiniLM-L6-v2 ONNX embedding model | Not an AI system per se | Runs locally via ONNX runtime; no data transferred externally |
 
 ---
 
-*EU AI Act Conformity Assessment v2.0 | Maison Beauté AI Advisor | March 2026*
+## 9. DEPLOYMENT INFRASTRUCTURE & CLASSIFICATION IMPACT
+
+### 9.1 Production Deployment (v3.0)
+
+As of April 2026, the system is deployed on cloud infrastructure:
+
+| Service | Provider | Location | Safeguard |
+|---|---|---|---|
+| FastAPI backend | Railway (US West / AWS us-west-2) | USA | Standard Contractual Clauses (SCCs); processing limited to request/response only; no persistent data storage on Railway |
+| Streamlit frontend | Streamlit Community Cloud (Snowflake, US) | USA | SCCs; frontend only — no AI inference; routes traffic to Railway API |
+
+### 9.2 Classification Impact
+
+**The cloud deployment does not change the EU AI Act classification.** The system remains **Limited Risk (Article 50)** for the following reasons:
+
+- Railway processes API requests transiently — no AI model runs on Railway, no training occurs, no data is retained beyond request handling
+- Streamlit Community Cloud serves only the UI layer — no AI inference, no personal data processing beyond routing
+- The AI inference (Claude Haiku via Anthropic API) was already classified as a US-based GPAI provider with SCCs in v2.0
+- No new categories of processing have been introduced
+- No Annex III triggers apply
+
+### 9.3 SCCs in Place
+
+All US-based processors operate under Standard Contractual Clauses (EU Commission Decision 2021/914):
+- Anthropic: API DPA with SCCs
+- Pinecone: DPA with SCCs
+- Railway: Terms of Service include data processing agreement
+- Streamlit / Snowflake: DPA with SCCs
+
+**Annual review trigger:** If Railway or Streamlit change their data residency or data processing terms, this assessment must be reviewed within 30 days of notification.
+
+---
+
+*EU AI Act Conformity Assessment v3.0 | Maison Beauté AI Advisor | April 2026*
 *Prepared as part of Ironhack AI Consulting & Integration Bootcamp Final Project*

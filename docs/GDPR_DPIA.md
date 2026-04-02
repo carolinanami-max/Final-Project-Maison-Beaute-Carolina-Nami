@@ -1,8 +1,8 @@
 # GDPR Documentation & Data Protection Impact Assessment (DPIA)
 
 **System:** Maison Beauté AI Advisor
-**Version:** 2.0
-**Date:** March 2026
+**Version:** 3.0
+**Date:** April 2026
 **Prepared by:** Carolina, AI Consultant (namiaistudio.com)
 **Ironhack AI Consulting & Integration Bootcamp — Final Project**
 
@@ -86,7 +86,9 @@ No personal data stored beyond session UUID
 | LangSmith (LangChain) | Observability / tracing | Anonymised session UUIDs, token counts, latency | USA | SCCs; opt-out of model training configured; 14-day retention |
 | n8n Cloud | Workflow orchestration + email | Safety-flagged message content; order status data | EU (DE) | GDPR-native processor; EU data residency |
 | Brevo (Sendinblue) | Email delivery | Customer email address (order tracking) | EU (FR) | GDPR-native processor; DPA in place |
-| HuggingFace (embeddings) | Text embedding model | Text chunks only — no PII | LOCAL (on-device) | No data transfer — model runs locally on CPU |
+| FastEmbed / ONNX Runtime | Text embedding model | Text chunks only — no PII | LOCAL (on-device via Railway container) | No external data transfer — model runs locally in Railway container via ONNX; no data sent to Qdrant/FastEmbed servers |
+| Railway (cloud infrastructure) | FastAPI backend hosting | API request/response payloads (transient) | USA (AWS us-west-2) | SCCs; Railway DPA; transient processing only — no persistent storage of personal data; payloads not logged by Railway |
+| Streamlit Community Cloud (Snowflake) | Streamlit frontend hosting | Streamlit session state (no PII by design); routing to Railway API | USA | SCCs; Snowflake/Streamlit DPA; frontend only — no AI inference or personal data storage |
 
 ---
 
@@ -177,5 +179,46 @@ As a micro-enterprise (under 250 employees), Maison Beauté is not required to a
 
 ---
 
-*GDPR Documentation & DPIA v2.0 | Maison Beauté AI Advisor | March 2026*
+---
+
+## 7. RAILWAY & STREAMLIT CLOUD — DATA PROCESSING ASSESSMENT
+
+### 7.1 Railway (FastAPI Hosting)
+
+**Role:** Infrastructure processor — hosts the FastAPI backend that orchestrates all AI module calls.
+
+**Data processed:** API request and response payloads pass through Railway's infrastructure transiently. Railway does not log, store, or process request body content beyond routing.
+
+**Personal data risk:** LOW. Railway processes data in transit only. No personal data is persisted on Railway. The only data that could be considered personal is chat messages — which are forwarded immediately to Anthropic (non-flagged) or n8n (flagged) and not retained in Railway.
+
+**Safeguards:**
+- SCCs in place under Railway Terms of Service / DPA
+- No persistent storage of personal data on Railway infrastructure
+- TLS encryption in transit
+- Environment variables (API keys) stored in Railway's encrypted secrets — not in code
+
+### 7.2 Streamlit Community Cloud (Frontend)
+
+**Role:** Infrastructure processor — serves the Streamlit UI. No AI inference occurs on Streamlit's infrastructure.
+
+**Data processed:** Streamlit session state (stored in-memory per session, no PII by design — `st.session_state` holds chat history as plain text and counters). Session state is not persisted beyond the browser session.
+
+**Personal data risk:** VERY LOW. The Streamlit frontend routes API calls to Railway and renders responses. It does not store personal data. The `st.secrets` mechanism stores only the Railway API URL, not any personal data.
+
+**Safeguards:**
+- SCCs in place under Snowflake/Streamlit DPA
+- No persistent storage of personal data
+- TLS encryption in transit
+- `st.secrets` used for API endpoint configuration only
+
+### 7.3 Updated Risk Register Entry
+
+| Risk ID | Risk Description | Likelihood | Impact | Score | Mitigation | Residual Risk |
+|---|---|---|---|---|---|---|
+| GDPR-R7 | Railway infrastructure logs contain API request bodies with chat messages | 2 | 3 | 6 | Railway application logs disabled for request bodies in production; only health check and error logs retained; Railway DPA confirms no log-based processing | LOW |
+| GDPR-R8 | Streamlit Cloud session state exposes chat history | 1 | 2 | 2 | Session state is client-side only; no PII in chat by design (order tracking uses order number only); chat history cleared on session end | VERY LOW |
+
+---
+
+*GDPR Documentation & DPIA v3.0 | Maison Beauté AI Advisor | April 2026*
 *Prepared as part of Ironhack AI Consulting & Integration Bootcamp Final Project*

@@ -242,7 +242,63 @@ One-time setup fee: **€8,000–€12,000** depending on integration complexity
 - Pre-built EU AI Act + GDPR compliance documentation — saves clients 2–4 weeks of legal work
 - Perplexity-powered ingredient enrichment — no manual research needed
 - Beauty-domain-specific prompt engineering — not a generic chatbot
+- Cloud-deployed (Railway + Streamlit Community Cloud) — no client infrastructure required
 
 ---
 
-*ROI & Risk Assessment v1.0 | Maison Beauté AI Advisor | Ironhack Berlin, March 2026*
+## 7. MODULE 4 NEWSLETTER VALUE (UPDATED)
+
+### 7.1 Time Saving — Newsletter Automation
+
+The Newsletter Generator (Module 4) was previously accounted for in Section 3.5 as "Newsletter/content creation saved (~3 hrs/week) → €7,800/year." The following provides a granular breakdown.
+
+| Task automated | Manual time | Frequency | Annual hours saved |
+|---|---|---|---|
+| Newsletter copy drafting | 90 min | Weekly | 78 hrs/year |
+| Multi-language adaptation | 45 min per language | Weekly (if applicable) | 39 hrs/year per language |
+| Product feature selection and writeup | 30 min | Weekly | 26 hrs/year |
+| Subject line and preview text testing | 20 min | Weekly | 17 hrs/year |
+| **Total (English only)** | **~3 hrs/week** | | **~160 hrs/year** |
+
+At €50/hour freelance equivalent: **€8,000/year** (revised upward from €7,800).
+
+### 7.2 Revenue Uplift — Personalised Newsletters with Discount Codes
+
+The Newsletter Studio's personalisation toggle enables segmented campaigns with auto-generated discount codes (e.g. `MB-SKIN-20` for skincare enthusiasts).
+
+**Conversion uplift estimate:**
+
+| Segment | Recipients | Baseline conversion | Personalised conversion (est.) | Uplift |
+|---|---|---|---|---|
+| All subscribers | 1,240 | 2.5% | 3.0% | +0.5% |
+| Skincare enthusiasts | 380 | 3.5% | 5.0% | +1.5% |
+| Fragrance collectors | 210 | 3.0% | 4.5% | +1.5% |
+| VIP members | 45 | 5.0% | 7.0% | +2.0% |
+
+**Revenue model (weekly newsletter to Skincare Enthusiasts):**
+```
+380 recipients × 5.0% conversion = 19 purchases
+19 purchases × €150 avg basket × 6.5% commission = €185.25/newsletter
+Baseline (3.5%): 13 purchases → €126.75/newsletter
+Personalisation uplift: +€58.50/newsletter → +€3,042/year (52 sends)
+```
+
+**Estimated annual revenue uplift from personalised segmented newsletters: ~€3,000–€8,000** depending on send frequency and segment mix.
+
+### 7.3 Customer Segmentation Capability
+
+The segment selector supports 5 customer segments out of the box:
+
+| Segment | Size | Use case |
+|---|---|---|
+| All subscribers | 1,240 | Broad announcements, seasonal campaigns |
+| Skincare enthusiasts | 380 | Skin-care product drops, ingredient education |
+| Fragrance collectors | 210 | New fragrance arrivals, layering guides |
+| New customers | 95 | Welcome series, brand introduction |
+| VIP members | 45 | Early access, exclusive discounts, loyalty rewards |
+
+Segmentation data is currently mock — in production, this would be pulled from the CRM/email platform (e.g. Brevo, Klaviyo) via API.
+
+---
+
+*ROI & Risk Assessment v2.0 | Maison Beauté AI Advisor | Ironhack Berlin, April 2026*

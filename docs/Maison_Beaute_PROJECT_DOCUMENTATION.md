@@ -136,11 +136,12 @@ A three-module AI system comprising:
 | LLM Backbone | Claude Haiku (claude-haiku-4-5-20251001) via Anthropic API | API Calling, Generative AI |
 | Ingredient Lookup | Perplexity API (sonar model) | API Calling |
 | Agent Framework | LangChain + LangGraph | LangChain, LangGraph, AI Agents |
-| RAG Pipeline | Pinecone vector store + HuggingFace all-MiniLM-L6-v2 (384 dims, local) | RAG, Chunking |
+| RAG Pipeline | Pinecone vector store + FastEmbed all-MiniLM-L6-v2 (384 dims, ONNX, local) | RAG, Chunking |
 | Observability | LangSmith → Tableau | LangSmith |
 | Orchestration | n8n Cloud (low-code automation + email) | n8n, Low-code |
 | Backend | Python 3.13 + FastAPI | Python |
-| Frontend | Streamlit (5-tab demo interface) | Python |
+| Frontend | Streamlit (6-page sidebar UI, editorial dark-navy, Plotly charts) | Python |
+| Deployment | Railway (FastAPI) + Streamlit Community Cloud (frontend) | Cloud deployment |
 | Data Handling | JSON (product catalogue, order data) | JSON handling |
 | Prompts | Structured system prompts with escaped JSON schema, brand voice enforcement | Prompt Engineering |
 | MCP Integration | n8n MCP nodes (Gmail safety alerts + order emails) | MCP implementation |
@@ -693,20 +694,24 @@ As a micro-enterprise, Maison Beauté is not required to appoint a DPO. If appoi
 
 ### 7.1 Deployment Phases
 
-**Phase 1: POC (Weeks 1–2)**
-- Deliverable: Working n8n workflows for all 3 modules; FastAPI MVP running locally
-- Success metric: All 3 modules testable via Swagger UI
-- Tools: n8n Cloud, Anthropic API, Perplexity API, Pinecone, LangSmith
+**Phase 1: POC → Cloud Deployment (✅ COMPLETE — April 2026)**
+- Deliverable: All 4 modules live on Railway (FastAPI) + Streamlit Community Cloud (UI)
+- 6-page premium Streamlit interface with analytics dashboard
+- LangSmith 22-case evaluation: 100% pass rate
+- n8n: 3 workflows active, email delivery confirmed
+- EU AI Act conformity assessment v3.0 + GDPR DPIA v3.0 complete
+- Success metric: All 5 endpoints live at Railway URL; Streamlit UI accessible at streamlit.app URL
 
-**Phase 2: Pilot (Weeks 3–6)**
-- Deliverable: Beta chatbot deployed on staging site; 50 real customer interactions
-- Success metric: 70%+ resolution rate; 0 false negatives on safety escalation
-- Monitoring: LangSmith traces reviewed weekly; Tableau dashboard live
+**Phase 2: Pilot (Q3 2026)**
+- Deliverable: 3 pilot clients from DACH beauty resale sector onboarded
+- White-label Streamlit frontend per client; per-client Pinecone namespace
+- Success metric: ≥2 pilots convert to paid; NPS ≥ 7/10; 75%+ resolution rate
+- Monitoring: LangSmith per-client project; weekly performance report
 
-**Phase 3: Full Deployment (Weeks 7–12)**
-- Deliverable: Production system on maison-beaute.de; all 3 modules live
-- Success metric: All success criteria from §1.6 met
-- Ongoing: Monthly bias audit, quarterly compliance review, GitHub version control on all prompts
+**Phase 3: Production SaaS (Q1 2027)**
+- Deliverable: Multi-tenant SaaS with self-serve onboarding, Stripe billing, 20+ clients
+- Target MRR: €15,000
+- See `docs/strategic_plan.md` for full 12-month roadmap and financial projections
 
 ### 7.2 Milestone Timeline
 
@@ -739,24 +744,95 @@ As a micro-enterprise, Maison Beauté is not required to appoint a DPO. If appoi
 
 | Tier | Target | Price | Includes |
 |---|---|---|---|
-| Starter | Solo operators (1–5 SKUs/day) | €149/month | All 3 modules, up to 500 chat sessions/month |
-| Growth | Small marketplaces | €449/month | Unlimited sessions, custom brand voice, LangSmith access |
-| Enterprise | Multi-brand platforms | €1,500+/month | White-label, API access, custom integrations |
+| Starter | Solo operators (1–5 SKUs/day) | €149/month | All 4 modules, up to 500 chat sessions/month |
+| Growth | Small marketplaces | €449/month | Unlimited sessions, custom brand voice, LangSmith access, Newsletter Studio with segment delivery |
+| Enterprise | Multi-brand platforms | €1,500+/month | White-label, API access, custom integrations, dedicated Railway environment |
 
 ### 7.5 Commercialisation Model
 
 **Model:** SaaS + Implementation Service
 
-Each marketplace gets their own brand voice configuration, Pinecone knowledge base, and compliance documentation template.
+Each marketplace gets their own brand voice configuration, Pinecone knowledge base, and compliance documentation template. Deployed on Railway per client (Enterprise) or shared infrastructure (Starter/Growth).
 
 **Competitive Advantage:**
 - Privacy-first architecture (no PII in chat) — EU market differentiator
 - Perplexity-powered ingredient enrichment — no manual research needed
 - Pre-built EU AI Act + GDPR documentation — saves clients 2–4 weeks of legal work
+- Cloud-deployed from day 1 (Railway + Streamlit Community Cloud) — no client infrastructure required
+- Newsletter Studio with customer segmentation and personalised discount codes — drives conversion uplift
+
+See `docs/strategic_plan.md` for full go-to-market strategy, competitive analysis, and 12-month roadmap.
 
 ---
 
 ## 8. MVP ARCHITECTURE (STRETCH)
+
+### 8.0 Cloud Deployment (v3.0 — April 2026)
+
+The system is fully deployed on cloud infrastructure. No local environment is required to access or demo the system.
+
+| Layer | Platform | Notes |
+|---|---|---|
+| FastAPI backend | Railway (AWS us-west-2) | `railway.toml` + `nixpacks.toml` in repo root; auto-deploys on push to `main` |
+| Streamlit frontend | Streamlit Community Cloud | Connects to Railway via `st.secrets["API_BASE"]`; falls back to `localhost` for local dev |
+| Embeddings | FastEmbed (ONNX, local in container) | Replaced `sentence-transformers` (PyTorch) — lighter Railway build, same 384-dim vectors |
+
+**`requirements.txt` dependency strategy:** All packages use `>=` floor constraints (no pinned `==`) to let pip resolve Railway's dependency graph cleanly. Key decisions: `fastembed>=0.3.0` (no PyTorch), `httpx>=0.28.0` (Anthropic SDK compatibility).
+
+### 8.0a 6-Page Streamlit Interface
+
+The Streamlit frontend was rebuilt from a 5-tab interface to a 6-page premium editorial UI:
+
+| Page | Module | Key features |
+|---|---|---|
+| 🏪 Shop Manager | M1 | Full product form, result card in Playfair Display, live plotly bar chart by category |
+| 💬 Beauty Advisor | M2 | Chat bubbles, 4 quick chips, live analytics panel (messages/flags/avg length + donut) |
+| 📋 FAQ & Policies | M3 | Policy chips, chat, FAQ topics coverage donut chart |
+| 📦 Order Tracking | M3 | 4-step visual timeline (gold done / green active), privacy notice |
+| ✉ Newsletter Studio | M4 | SKU picker, segment dropdown, personalisation toggle, Generate/Send buttons, preview panel |
+| 📊 Analytics | — | 4 KPI cards, 7-day line chart, module bar chart, eval results table, pass-rate donut |
+
+**Sidebar:** Dark navy gradient, logo, nav-link radio with rose active indicator, system status (LangSmith/Pinecone/n8n), live session metrics strip.
+
+### 8.0b Module 4 — Newsletter Generator
+
+**Endpoint:** `POST /newsletter/generate`
+
+**Request body:**
+```json
+{
+  "trending_topics": ["glass skin", "sustainable beauty"],
+  "new_products": ["La Mer The Treatment Lotion"],
+  "language": "English",
+  "send_email": false
+}
+```
+
+**`send_email: false`** → preview only (returns `{subject_line, preview_text, body, cta}`)
+**`send_email: true`** → triggers n8n newsletter webhook → email delivery to segment
+
+**SKU picker (Newsletter Studio):**
+- Lancôme Lip Idôle JuicyTreat · WI-000002100 · MAKE-UP
+- La Mer The Treatment Lotion · WI-000000148 · SKIN-CARE
+- U Beauty Resurfacing Compound · WI-000000440 · SKIN-CARE
+
+**Customer segments:** All subscribers (1,240) · Skincare enthusiasts (380) · Fragrance collectors (210) · New customers (95) · VIP members (45)
+
+### 8.0c LangSmith Evaluation Results
+
+**File:** `evals/eval_results.json` | **Run date:** 2026-04-01
+
+| Metric | Value |
+|---|---|
+| Total test cases | 22 |
+| Pass rate | 100% |
+| Avg relevance | 0.88 |
+| Avg namespace correctness | 1.0 |
+| Safety accuracy | 1.0 |
+
+Categories: product_recommendation (7) · product_information (3) · policy (7) · safety_escalation (4) · brand_values (1). All 4 safety escalation cases correctly routed without calling Anthropic API. Results displayed live in the Analytics Dashboard (Page 6).
+
+---
 
 ### 8.1 MVP Stack
 
