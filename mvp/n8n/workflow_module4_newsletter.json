@@ -1,0 +1,83 @@
+{
+  "name": "FINAL PROJECT / maison-beaute-newsletter",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "maison-beaute-newsletter",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json.body;\n\nconst subject = payload.subject_line || 'The Edit — Maison Beaute';\nconst preview = payload.preview_text || '';\nconst body = payload.body || '';\nconst cta = payload.cta || 'Explore the collection';\nconst newProducts = payload.new_products || [];\nconst recipient = payload.recipient || 'carolinanami@gmail.com';\nconst month = new Date().toLocaleDateString('en-GB', {month:'long', year:'numeric'}).toUpperCase();\n\nconst PRODUCT_MAP = {\n  'lancome': {\n    name: 'Lancome Lip Idole JuicyTreat',\n    sku: 'WI-000002100',\n    subtitle: 'No. 90 Berry Bisou · 8.5ml',\n    badge: 'MAKE-UP',\n    img: 'https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/sku_lancome_90_berry_bisou_WI-000002100_1-xlarge.webp'\n  },\n  'la mer': {\n    name: 'La Mer The Treatment Lotion',\n    sku: 'WI-000000148',\n    subtitle: '100ml · Miracle Broth',\n    badge: 'SKIN-CARE',\n    img: 'https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/sku_la_mer_the_treatment_lotion_100_ml_WI-000000148_11-xlarge.webp'\n  },\n  'u beauty': {\n    name: 'U Beauty Resurfacing Compound',\n    sku: 'WI-000000440',\n    subtitle: '50ml · SIREN Capsule Technology',\n    badge: 'SKIN-CARE',\n    img: 'https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/sku_u_beauty_u_beauty_resurfacing_compound_serum_50_ml_WI-000000440_8-xlarge.webp'\n  }\n};\n\nconst cards = newProducts\n  .map(p => {\n    const key = Object.keys(PRODUCT_MAP).find(k => p.toLowerCase().includes(k));\n    return key ? PRODUCT_MAP[key] : null;\n  })\n  .filter(Boolean).slice(0, 3);\n\n// Render body paragraphs from the EXACT generated content\nconst paragraphs = body\n  .split(/\\n\\n+/)\n  .filter(p => p.trim())\n  .map((p, i) => {\n    const clean = p.trim().replace(/\\*([^*]+)\\*/g, '<em>$1</em>');\n    return i === 0\n      ? '<p style=\"margin:0 0 24px 0;font-size:17px;line-height:1.9;color:#1A1A2E;font-family:Georgia,serif;font-style:italic;\">' + clean + '</p>'\n      : '<p style=\"margin:0 0 22px 0;font-size:14px;line-height:1.85;color:#3A2A4A;font-family:Arial,sans-serif;\">' + clean + '</p>';\n  }).join('');\n\nconst cardRows = cards.map(c =>\n  '<tr><td style=\"padding:0 0 16px 0;\">' +\n  '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:1px solid #E8E0DC;border-radius:4px;overflow:hidden;\">' +\n  '<tr>' +\n  '<td width=\"120\" style=\"vertical-align:top;padding:0;\">' +\n  '<img src=\"' + c.img + '\" alt=\"' + c.name + '\" width=\"120\" height=\"120\" style=\"display:block;width:120px;height:120px;object-fit:cover;\">' +\n  '</td>' +\n  '<td style=\"vertical-align:middle;padding:14px 18px;\">' +\n  '<p style=\"margin:0 0 4px 0;font-size:9px;color:#C9748F;font-family:Arial,sans-serif;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;\">' + c.badge + '</p>' +\n  '<p style=\"margin:0 0 3px 0;font-size:14px;color:#1A1A2E;font-family:Georgia,serif;line-height:1.3;\">' + c.name + '</p>' +\n  '<p style=\"margin:0 0 3px 0;font-size:10px;color:#9B8FA0;font-family:Arial,sans-serif;letter-spacing:0.05em;\">SKU: ' + c.sku + '</p>' +\n  '<p style=\"margin:0 0 12px 0;font-size:11px;color:#9B8FA0;font-family:Arial,sans-serif;\">' + c.subtitle + '</p>' +\n  '<a href=\"https://www.revouri.de\" style=\"font-size:10px;color:#1A1A2E;font-family:Arial,sans-serif;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid #C9748F;padding-bottom:2px;\">View product</a>' +\n  '</td>' +\n  '</tr>' +\n  '</table>' +\n  '</td></tr>'\n).join('');\n\nconst productSection = cards.length > 0\n  ? '<tr><td style=\"background:#FAFAF8;padding:28px 48px 16px;border-top:1px solid #E8E0DC;\">' +\n    '<p style=\"margin:0 0 22px 0;font-size:9px;color:#C9A84C;font-family:Arial,sans-serif;letter-spacing:0.22em;text-transform:uppercase;font-weight:700;\">Featured This Edit</p>' +\n    '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">' + cardRows + '</table>' +\n    '</td></tr>'\n  : '';\n\nconst html = '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>' + subject + '</title></head>' +\n'<body style=\"margin:0;padding:0;background:#E4DED8;\">' +\n'<div style=\"display:none;max-height:0;overflow:hidden;\">' + preview + '</div>' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#E4DED8;padding:36px 16px;\"><tr><td align=\"center\">' +\n'<table width=\"580\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:580px;width:100%;\">' +\n\n'<tr><td style=\"padding:0 0 12px 0;text-align:center;\">' +\n'<p style=\"margin:0;font-size:9px;color:#9B8FA0;font-family:Arial,sans-serif;letter-spacing:0.22em;text-transform:uppercase;\">' + month + ' - The Edit</p>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#1A1A2E;padding:40px 48px 32px;border-radius:3px 3px 0 0;\">' +\n'<p style=\"margin:0 0 2px 0;font-size:9px;color:#C9748F;letter-spacing:0.28em;text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;\">Pre-Loved Luxury Beauty</p>' +\n'<h1 style=\"margin:10px 0 16px;font-size:40px;color:#F2E8D9;font-weight:normal;font-family:Georgia,serif;line-height:0.95;\">Maison<br>Beaute</h1>' +\n'<div style=\"width:40px;height:1px;background:#C9748F;margin:0 0 10px;\"></div>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#2D1B4E;padding:22px 48px;\">' +\n'<p style=\"margin:0 0 4px 0;font-size:11px;color:#9B8FA0;font-family:Arial,sans-serif;font-style:italic;\">' + preview + '</p>' +\n'<p style=\"margin:0;font-size:20px;color:#F2E8D9;font-family:Georgia,serif;font-style:italic;line-height:1.3;\">' + subject + '</p>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#C9748F;height:3px;font-size:1px;line-height:1px;\">&nbsp;</td></tr>' +\n\n'<tr><td style=\"background:#FFFFFF;padding:40px 48px 28px;\">' + paragraphs + '</td></tr>' +\n\nproductSection +\n\n'<tr><td style=\"background:#FFFFFF;padding:24px 48px 44px;\">' +\n'<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n'<td style=\"background:#1A1A2E;\">' +\n'<a href=\"https://www.revouri.de\" style=\"display:inline-block;padding:15px 38px;font-family:Arial,sans-serif;font-size:10px;font-weight:700;color:#F2E8D9;text-decoration:none;letter-spacing:0.2em;text-transform:uppercase;\">' + cta + ' &rarr;</a>' +\n'</td></tr></table>' +\n'</td></tr>' +\n\n'<tr><td style=\"padding:0;\">' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n'<td width=\"4\" style=\"background:#C9A84C;\">&nbsp;</td>' +\n'<td style=\"background:#F8F5F1;padding:20px 44px;\">' +\n'<p style=\"margin:0;font-size:11px;color:#9B8FA0;font-family:Arial,sans-serif;line-height:1.7;font-style:italic;\">Every purchase at Maison Beaute extends the life of a luxury product. Thank you for choosing circular beauty.</p>' +\n'</td></tr></table>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#1A1A2E;padding:30px 48px 34px;border-radius:0 0 3px 3px;\">' +\n'<p style=\"margin:0 0 3px;font-size:20px;color:#F2E8D9;font-family:Georgia,serif;\">Maison Beaute</p>' +\n'<p style=\"margin:0 0 20px;font-size:10px;color:#6B6080;font-family:Arial,sans-serif;\">maisonbeaute.de - Berlin, Germany</p>' +\n'<p style=\"margin:0;font-size:10px;color:#4A3A5A;font-family:Arial,sans-serif;border-top:1px solid #2D2040;padding-top:14px;\">You received this as part of The Edit. <a href=\"#\" style=\"color:#C9748F;text-decoration:none;\">Unsubscribe</a></p>' +\n'</td></tr>' +\n\n'</table></td></tr></table></body></html>';\n\nreturn [{ json: { html, subject, recipient, preview } }];"
+      },
+      "id": "node-code",
+      "name": "Format HTML Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "carolinanami@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "node-gmail",
+      "name": "Send Newsletter Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format HTML Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format HTML Email": {
+      "main": [
+        [
+          {
+            "node": "Send Newsletter Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
