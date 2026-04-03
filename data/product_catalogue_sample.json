@@ -1,0 +1,41 @@
+[
+  {
+    "product_id": "MB-2024-0847",
+    "brand": "Charlotte Tilbury",
+    "product_name": "Magic Cream",
+    "category": "Moisturiser",
+    "condition": "Like New (used 1-3x)",
+    "original_retail_price_eur": 105.0,
+    "listing_price_eur": 52.0,
+    "key_ingredients": ["Hyaluronic Acid", "Vitamin C", "Rose Hip Oil"],
+    "skin_type": ["Dry", "Combination"],
+    "size_ml": 50,
+    "seller_notes": "Barely used, no box but product is perfect"
+  },
+  {
+    "product_id": "MB-2024-0901",
+    "brand": "La Mer",
+    "product_name": "Crème de la Mer",
+    "category": "Moisturiser",
+    "condition": "Unused",
+    "original_retail_price_eur": 380.0,
+    "listing_price_eur": 210.0,
+    "key_ingredients": ["Miracle Broth", "Lime Tea Extract", "Antioxidant Complex"],
+    "skin_type": ["All", "Dry", "Sensitive"],
+    "size_ml": 30,
+    "seller_notes": "Brand new, received as a gift. Sealed, never opened."
+  },
+  {
+    "product_id": "MB-2024-0912",
+    "brand": "Sunday Riley",
+    "product_name": "Good Genes Lactic Acid Treatment",
+    "category": "Serum",
+    "condition": "Gently Used",
+    "original_retail_price_eur": 85.0,
+    "listing_price_eur": 40.0,
+    "key_ingredients": ["Lactic Acid", "Licorice Root", "Lemongrass"],
+    "skin_type": ["All"],
+    "size_ml": 30,
+    "seller_notes": "Used about 10 times. Still plenty left, works great."
+  }
+]
