@@ -1028,32 +1028,37 @@ elif page == "✉  Newsletter Studio":
         # Save checked state
         st.session_state.newsletter_sel_skus = [s["key"] for s in NEWSLETTER_SKUS if sku_checked.get(s["key"])]
 
-        c_lang, c_seg = st.columns(2)
-        with c_lang:
-            st.markdown('<div class="lbl" style="margin-top:0.8rem">Language</div>', unsafe_allow_html=True)
-            language = st.selectbox("lang", ["English", "German", "French", "Portuguese"], label_visibility="collapsed")
-        with c_seg:
-            st.markdown('<div class="lbl" style="margin-top:0.8rem">Customer Segment</div>', unsafe_allow_html=True)
-            segment = st.selectbox(
-                "seg",
-                list(SEGMENT_COUNTS.keys()),
-                label_visibility="collapsed",
-            )
+        # Language and segment each get their own full-width row inside col_left
+        # (avoids invisible-widget bug when nested sub-columns are too narrow)
+        st.markdown('<div class="lbl" style="margin-top:0.9rem">Language</div>', unsafe_allow_html=True)
+        language = st.selectbox(
+            "language_sel",
+            ["English", "German", "French", "Portuguese"],
+            label_visibility="collapsed",
+            key="nl_language",
+        )
 
-        st.markdown('<div class="lbl" style="margin-top:0.8rem">Personalisation</div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl" style="margin-top:0.9rem">Customer Segment</div>', unsafe_allow_html=True)
+        segment = st.selectbox(
+            "segment_sel",
+            list(SEGMENT_COUNTS.keys()),
+            label_visibility="collapsed",
+            key="nl_segment",
+        )
+
+        st.markdown('<div class="lbl" style="margin-top:0.9rem">Personalisation</div>', unsafe_allow_html=True)
         personalise = st.toggle("Include personalised discount code", value=False, key="nl_personalise")
         if personalise:
-            disc_code = st.text_input("Discount Code", value=st.session_state.discount_code)
+            disc_code = st.text_input("Discount Code", value=st.session_state.discount_code, key="nl_disc_code")
             st.session_state.discount_code = disc_code
 
-        # Buttons
-        st.markdown("<br>", unsafe_allow_html=True)
-        btn_col1, btn_col2 = st.columns(2)
-
+        # Derived values used by both buttons
         selected_skus_list = [s for s in NEWSLETTER_SKUS if sku_checked.get(s["key"])]
         new_products_payload = [s["name"] for s in selected_skus_list]
         topics_list = [t.strip() for t in topics_input.split("\n") if t.strip()]
 
+        st.markdown("<br>", unsafe_allow_html=True)
+        btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
             gen_btn = st.button("✦  Generate Newsletter", key="btn_nl_gen", use_container_width=True)
         with btn_col2:
