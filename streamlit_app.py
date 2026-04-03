@@ -1072,9 +1072,16 @@ elif page == "✉  Newsletter Studio":
                             "send_email": False,
                         }, timeout=45)
                         if resp.status_code == 200:
-                            st.session_state.newsletter_result = resp.json()
-                            st.session_state.newsletter_result["_skus"] = selected_skus_list
-                            st.session_state.newsletter_result["_segment"] = segment
+                            # Build the full dict first, then assign once — Streamlit
+                            # does not reliably track mutations on already-assigned
+                            # session_state objects (two-step mutation causes display bug).
+                            result = resp.json()
+                            result["_skus"]     = selected_skus_list
+                            result["_segment"]  = segment
+                            result["_topics"]   = topics_list
+                            result["_products"] = new_products_payload
+                            result["_language"] = language
+                            st.session_state.newsletter_result = result
                             st.session_state.newsletter_send_status = None
                             st.rerun()
                         else:
@@ -1083,17 +1090,18 @@ elif page == "✉  Newsletter Studio":
                         st.error("❌ Backend not running.")
 
         if send_btn:
-            if not topics_list:
-                st.warning("Please enter at least one trending topic.")
-            elif st.session_state.newsletter_result is None:
+            if st.session_state.newsletter_result is None:
                 st.warning("Generate the newsletter first, then click Send.")
             else:
+                # Use the inputs that produced the previewed content — do NOT
+                # re-generate with current form values, which could differ.
+                d_stored = st.session_state.newsletter_result
                 with st.spinner("Sending to segment..."):
                     try:
                         resp = requests.post(f"{API_BASE}/newsletter/generate", json={
-                            "trending_topics": topics_list,
-                            "new_products": new_products_payload,
-                            "language": language,
+                            "trending_topics": d_stored.get("_topics", topics_list),
+                            "new_products":    d_stored.get("_products", new_products_payload),
+                            "language":        d_stored.get("_language", language),
                             "send_email": True,
                         }, timeout=45)
                         if resp.status_code == 200:
@@ -1141,17 +1149,19 @@ elif page == "✉  Newsletter Studio":
             </div>
             """, unsafe_allow_html=True)
 
-            # Newsletter body via st.markdown for rich rendering
-            with st.container():
-                st.markdown(
-                    '<div style="background:white;border-radius:8px;padding:1.2rem 1.5rem;'
-                    'box-shadow:0 2px 12px rgba(26,26,46,0.07);margin-bottom:1.2rem">',
-                    unsafe_allow_html=True,
-                )
-                st.markdown(d.get("body", ""))
-                if d.get("cta"):
-                    st.markdown(f'<div class="nl-cta">→ {d["cta"]}</div>', unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
+            # Newsletter body — single st.markdown call so the wrapping div
+            # actually contains the content (split open/close divs across
+            # separate st.markdown calls do not nest in the DOM).
+            body_text = d.get("body", "").replace("\n", "<br>")
+            cta_html = f'<div class="nl-cta">→ {d["cta"]}</div>' if d.get("cta") else ""
+            st.markdown(f"""
+            <div style="background:white;border-radius:8px;padding:1.2rem 1.5rem;
+                box-shadow:0 2px 12px rgba(26,26,46,0.07);margin-bottom:1.2rem;
+                font-size:0.875rem;color:#3A2A4A;line-height:1.75">
+                {body_text}
+                {cta_html}
+            </div>
+            """, unsafe_allow_html=True)
 
             # Product cards
             if skus_for_display:
