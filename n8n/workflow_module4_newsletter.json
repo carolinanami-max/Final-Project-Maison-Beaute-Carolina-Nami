@@ -1,85 +1,83 @@
 {
-  "name": "maison-beaute-newsletter-studio",
+  "name": "FINAL PROJECT / maison-beaute-newsletter",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "maison-beaute-newsletter",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
-      "id": "webhook-trigger",
-      "name": "Newsletter Webhook",
+      "id": "node-webhook",
+      "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [240, 300]
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// ── Maison Beauté Newsletter — Format HTML Email ──────────────────\n//\n// Payload received from FastAPI /newsletter/generate:\n//   subject_line  — AI-generated subject (use as-is, do NOT regenerate)\n//   preview_text  — AI-generated preview text\n//   body          — AI-generated body paragraphs (separated by \\n\\n)\n//   cta           — AI-generated call-to-action sentence\n//   new_products  — array of product name strings selected in Newsletter Studio\n//   recipient     — destination email address\n//\n// Product cards are built by matching new_products names against PRODUCT_MAP.\n// Images are served from raw.githubusercontent.com (public, no auth needed).\n\nconst payload = $input.first().json.body;\n\nconst subjectLine = payload.subject_line || 'Your Maison Beauté Newsletter';\nconst previewText = payload.preview_text || '';\nconst bodyText    = payload.body || '';\nconst ctaText     = payload.cta || 'Explore our curated collection today.';\nconst newProducts = payload.new_products || [];\nconst recipient   = payload.recipient || 'carolinanami@gmail.com';\n\n// ── Product catalogue map ──────────────────────────────────────────\n// Maps product name (as sent by FastAPI) → { sku, badge, imageUrl }\nconst PRODUCT_MAP = {\n  \"Lancôme Lip Idôle JuicyTreat\": {\n    sku: \"WI-000002100\",\n    badge: \"MAKE-UP\",\n    badgeColor: \"#FCE8F3\",\n    badgeText: \"#7C1D5A\",\n    imageUrl: \"https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/images/WI-000002100.jpg\"\n  },\n  \"La Mer The Treatment Lotion\": {\n    sku: \"WI-000000148\",\n    badge: \"SKIN-CARE\",\n    badgeColor: \"#E3F3FF\",\n    badgeText: \"#1A5C87\",\n    imageUrl: \"https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/images/WI-000000148.jpg\"\n  },\n  \"U Beauty Resurfacing Compound\": {\n    sku: \"WI-000000440\",\n    badge: \"SKIN-CARE\",\n    badgeColor: \"#E3F3FF\",\n    badgeText: \"#1A5C87\",\n    imageUrl: \"https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/images/WI-000000440.jpg\"\n  }\n};\n\n// ── Build body paragraphs from \\n\\n-separated text ────────────────\nconst paragraphs = bodyText\n  .split('\\n\\n')\n  .map(p => p.trim())\n  .filter(p => p.length > 0)\n  .map(p => `<p style=\"margin:0 0 16px 0;font-size:15px;line-height:1.75;color:#3A2A4A\">${p.replace(/\\n/g, '<br>')}</p>`)\n  .join('\\n');\n\n// ── Build product cards ────────────────────────────────────────────\nconst productCardsHtml = newProducts.length > 0\n  ? newProducts.map(name => {\n      const product = PRODUCT_MAP[name];\n      if (!product) return '';\n      return `\n      <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"width:100%;margin-bottom:12px;background:#FAFAFA;border-radius:8px;border:1px solid #EDE8E3\">\n        <tr>\n          <td style=\"width:70px;padding:12px 0 12px 14px;vertical-align:middle\">\n            <img src=\"${product.imageUrl}\" alt=\"${name}\" width=\"58\" height=\"58\"\n              style=\"border-radius:6px;object-fit:cover;display:block\"\n              onerror=\"this.style.display='none'\">\n          </td>\n          <td style=\"padding:12px 8px;vertical-align:middle\">\n            <span style=\"display:inline-block;background:${product.badgeColor};color:${product.badgeText};font-size:10px;font-weight:600;letter-spacing:0.08em;padding:2px 8px;border-radius:10px;margin-bottom:4px\">${product.badge}</span><br>\n            <span style=\"font-family:'Georgia',serif;font-size:14px;font-weight:600;color:#1A1A2E\">${name}</span><br>\n            <span style=\"font-size:11px;color:#9B8FA0;margin-top:2px;display:inline-block\">${product.sku}</span>\n          </td>\n          <td style=\"padding:12px 14px 12px 0;vertical-align:middle;text-align:right;white-space:nowrap\">\n            <a href=\"https://maisonbeaute.de\" style=\"font-size:12px;color:#C9748F;font-weight:600;text-decoration:none\">View product →</a>\n          </td>\n        </tr>\n      </table>`;\n    }).join('\\n')\n  : '';\n\n// ── Assemble full HTML email ───────────────────────────────────────\nconst htmlEmail = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n  <meta name=\"x-apple-disable-message-reformatting\">\n  <title>${subjectLine}</title>\n  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->\n  <style>\n    body { margin:0;padding:0;background:#F8F5F2;-webkit-text-size-adjust:100% }\n    @media only screen and (max-width:600px) {\n      .email-container { width:100%!important }\n      .hero-title { font-size:26px!important }\n    }\n  </style>\n</head>\n<body style=\"background:#F8F5F2;margin:0;padding:0\">\n\n  <!-- Preheader (hidden preview text) -->\n  <div style=\"display:none;max-height:0;overflow:hidden;font-size:1px;color:#F8F5F2\">\n    ${previewText}&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌\n  </div>\n\n  <!-- Outer wrapper -->\n  <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"width:100%;background:#F8F5F2\">\n    <tr>\n      <td align=\"center\" style=\"padding:32px 16px\">\n\n        <!-- Email container -->\n        <table class=\"email-container\" role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"\n          style=\"width:600px;max-width:600px;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(26,26,46,0.10)\">\n\n          <!-- ── HEADER ── -->\n          <tr>\n            <td style=\"background:linear-gradient(135deg,#1A1A2E 0%,#2D1B4E 100%);padding:36px 40px 28px;text-align:center\">\n              <p style=\"margin:0 0 6px;font-family:'Georgia',serif;font-size:11px;color:#C9748F;letter-spacing:0.28em;text-transform:uppercase\">Maison Beauté</p>\n              <h1 class=\"hero-title\" style=\"margin:0;font-family:'Georgia',serif;font-size:30px;font-weight:400;color:#F2E8D9;line-height:1.2;letter-spacing:0.02em\">${subjectLine}</h1>\n              <p style=\"margin:14px 0 0;font-family:Arial,sans-serif;font-size:13px;color:rgba(242,232,217,0.6);font-style:italic\">${previewText}</p>\n            </td>\n          </tr>\n\n          <!-- ── BODY ── -->\n          <tr>\n            <td style=\"padding:36px 40px 0\">\n              ${paragraphs}\n            </td>\n          </tr>\n\n          ${productCardsHtml ? `\n          <!-- ── PRODUCT CARDS ── -->\n          <tr>\n            <td style=\"padding:8px 40px 0\">\n              <p style=\"font-family:Arial,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#9B8FA0;margin:0 0 12px\">Featured Arrivals</p>\n              ${productCardsHtml}\n            </td>\n          </tr>` : ''}\n\n          <!-- ── CTA BUTTON ── -->\n          <tr>\n            <td style=\"padding:32px 40px;text-align:center\">\n              <a href=\"https://maisonbeaute.de\"\n                style=\"display:inline-block;background:linear-gradient(135deg,#1A1A2E,#2D1B4E);color:#F2E8D9;font-family:Arial,sans-serif;font-size:14px;font-weight:600;letter-spacing:0.08em;text-decoration:none;padding:14px 36px;border-radius:4px\">\n                ${ctaText}\n              </a>\n            </td>\n          </tr>\n\n          <!-- ── DIVIDER ── -->\n          <tr>\n            <td style=\"padding:0 40px\">\n              <hr style=\"border:none;border-top:1px solid #E8E0DC;margin:0\">\n            </td>\n          </tr>\n\n          <!-- ── FOOTER ── -->\n          <tr>\n            <td style=\"padding:24px 40px 32px;text-align:center\">\n              <p style=\"margin:0 0 6px;font-family:Arial,sans-serif;font-size:11px;color:#B0A4B8\">\n                Maison Beauté · Pre-Loved Luxury Beauty · Berlin\n              </p>\n              <p style=\"margin:0 0 6px;font-family:Arial,sans-serif;font-size:11px;color:#B0A4B8\">\n                <a href=\"https://maisonbeaute.de\" style=\"color:#C9748F;text-decoration:none\">Shop</a> &nbsp;·&nbsp;\n                <a href=\"https://maisonbeaute.de/privacy\" style=\"color:#C9748F;text-decoration:none\">Privacy</a> &nbsp;·&nbsp;\n                <a href=\"https://maisonbeaute.de/unsubscribe\" style=\"color:#C9748F;text-decoration:none\">Unsubscribe</a>\n              </p>\n              <p style=\"margin:8px 0 0;font-family:Arial,sans-serif;font-size:10px;color:#C9C0CE\">\n                © 2026 Maison Beauté. All rights reserved. GDPR compliant · EU AI Act: Limited Risk (Art. 50)\n              </p>\n            </td>\n          </tr>\n\n        </table>\n        <!-- /email container -->\n\n      </td>\n    </tr>\n  </table>\n\n</body>\n</html>`;\n\nreturn [\n  {\n    json: {\n      html: htmlEmail,\n      subject: subjectLine,\n      recipient: recipient\n    }\n  }\n];\n"
+        "jsCode": "const payload = $input.first().json.body;\n\nconst subject = payload.subject_line || 'The Edit — Maison Beaute';\nconst preview = payload.preview_text || '';\nconst body = payload.body || '';\nconst cta = payload.cta || 'Explore the collection';\nconst newProducts = payload.new_products || [];\nconst recipient = payload.recipient || 'carolinanami@gmail.com';\nconst month = new Date().toLocaleDateString('en-GB', {month:'long', year:'numeric'}).toUpperCase();\n\nconst PRODUCT_MAP = {\n  'lancome': {\n    name: 'Lancome Lip Idole JuicyTreat',\n    sku: 'WI-000002100',\n    subtitle: 'No. 90 Berry Bisou · 8.5ml',\n    badge: 'MAKE-UP',\n    img: 'https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/sku_lancome_90_berry_bisou_WI-000002100_1-xlarge.webp'\n  },\n  'la mer': {\n    name: 'La Mer The Treatment Lotion',\n    sku: 'WI-000000148',\n    subtitle: '100ml · Miracle Broth',\n    badge: 'SKIN-CARE',\n    img: 'https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/sku_la_mer_the_treatment_lotion_100_ml_WI-000000148_11-xlarge.webp'\n  },\n  'u beauty': {\n    name: 'U Beauty Resurfacing Compound',\n    sku: 'WI-000000440',\n    subtitle: '50ml · SIREN Capsule Technology',\n    badge: 'SKIN-CARE',\n    img: 'https://raw.githubusercontent.com/carolinanami-max/Final-Project-Maison-Beaute-Carolina-Nami/main/data/sku_u_beauty_u_beauty_resurfacing_compound_serum_50_ml_WI-000000440_8-xlarge.webp'\n  }\n};\n\nconst cards = newProducts\n  .map(p => {\n    const key = Object.keys(PRODUCT_MAP).find(k => p.toLowerCase().includes(k));\n    return key ? PRODUCT_MAP[key] : null;\n  })\n  .filter(Boolean).slice(0, 3);\n\n// Render body paragraphs from the EXACT generated content\nconst paragraphs = body\n  .split(/\\n\\n+/)\n  .filter(p => p.trim())\n  .map((p, i) => {\n    const clean = p.trim().replace(/\\*([^*]+)\\*/g, '<em>$1</em>');\n    return i === 0\n      ? '<p style=\"margin:0 0 24px 0;font-size:17px;line-height:1.9;color:#1A1A2E;font-family:Georgia,serif;font-style:italic;\">' + clean + '</p>'\n      : '<p style=\"margin:0 0 22px 0;font-size:14px;line-height:1.85;color:#3A2A4A;font-family:Arial,sans-serif;\">' + clean + '</p>';\n  }).join('');\n\nconst cardRows = cards.map(c =>\n  '<tr><td style=\"padding:0 0 16px 0;\">' +\n  '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:1px solid #E8E0DC;border-radius:4px;overflow:hidden;\">' +\n  '<tr>' +\n  '<td width=\"120\" style=\"vertical-align:top;padding:0;\">' +\n  '<img src=\"' + c.img + '\" alt=\"' + c.name + '\" width=\"120\" height=\"120\" style=\"display:block;width:120px;height:120px;object-fit:cover;\">' +\n  '</td>' +\n  '<td style=\"vertical-align:middle;padding:14px 18px;\">' +\n  '<p style=\"margin:0 0 4px 0;font-size:9px;color:#C9748F;font-family:Arial,sans-serif;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;\">' + c.badge + '</p>' +\n  '<p style=\"margin:0 0 3px 0;font-size:14px;color:#1A1A2E;font-family:Georgia,serif;line-height:1.3;\">' + c.name + '</p>' +\n  '<p style=\"margin:0 0 3px 0;font-size:10px;color:#9B8FA0;font-family:Arial,sans-serif;letter-spacing:0.05em;\">SKU: ' + c.sku + '</p>' +\n  '<p style=\"margin:0 0 12px 0;font-size:11px;color:#9B8FA0;font-family:Arial,sans-serif;\">' + c.subtitle + '</p>' +\n  '<a href=\"https://www.revouri.de\" style=\"font-size:10px;color:#1A1A2E;font-family:Arial,sans-serif;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid #C9748F;padding-bottom:2px;\">View product</a>' +\n  '</td>' +\n  '</tr>' +\n  '</table>' +\n  '</td></tr>'\n).join('');\n\nconst productSection = cards.length > 0\n  ? '<tr><td style=\"background:#FAFAF8;padding:28px 48px 16px;border-top:1px solid #E8E0DC;\">' +\n    '<p style=\"margin:0 0 22px 0;font-size:9px;color:#C9A84C;font-family:Arial,sans-serif;letter-spacing:0.22em;text-transform:uppercase;font-weight:700;\">Featured This Edit</p>' +\n    '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">' + cardRows + '</table>' +\n    '</td></tr>'\n  : '';\n\nconst html = '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>' + subject + '</title></head>' +\n'<body style=\"margin:0;padding:0;background:#E4DED8;\">' +\n'<div style=\"display:none;max-height:0;overflow:hidden;\">' + preview + '</div>' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#E4DED8;padding:36px 16px;\"><tr><td align=\"center\">' +\n'<table width=\"580\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:580px;width:100%;\">' +\n\n'<tr><td style=\"padding:0 0 12px 0;text-align:center;\">' +\n'<p style=\"margin:0;font-size:9px;color:#9B8FA0;font-family:Arial,sans-serif;letter-spacing:0.22em;text-transform:uppercase;\">' + month + ' - The Edit</p>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#1A1A2E;padding:40px 48px 32px;border-radius:3px 3px 0 0;\">' +\n'<p style=\"margin:0 0 2px 0;font-size:9px;color:#C9748F;letter-spacing:0.28em;text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;\">Pre-Loved Luxury Beauty</p>' +\n'<h1 style=\"margin:10px 0 16px;font-size:40px;color:#F2E8D9;font-weight:normal;font-family:Georgia,serif;line-height:0.95;\">Maison<br>Beaute</h1>' +\n'<div style=\"width:40px;height:1px;background:#C9748F;margin:0 0 10px;\"></div>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#2D1B4E;padding:22px 48px;\">' +\n'<p style=\"margin:0 0 4px 0;font-size:11px;color:#9B8FA0;font-family:Arial,sans-serif;font-style:italic;\">' + preview + '</p>' +\n'<p style=\"margin:0;font-size:20px;color:#F2E8D9;font-family:Georgia,serif;font-style:italic;line-height:1.3;\">' + subject + '</p>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#C9748F;height:3px;font-size:1px;line-height:1px;\">&nbsp;</td></tr>' +\n\n'<tr><td style=\"background:#FFFFFF;padding:40px 48px 28px;\">' + paragraphs + '</td></tr>' +\n\nproductSection +\n\n'<tr><td style=\"background:#FFFFFF;padding:24px 48px 44px;\">' +\n'<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n'<td style=\"background:#1A1A2E;\">' +\n'<a href=\"https://www.revouri.de\" style=\"display:inline-block;padding:15px 38px;font-family:Arial,sans-serif;font-size:10px;font-weight:700;color:#F2E8D9;text-decoration:none;letter-spacing:0.2em;text-transform:uppercase;\">' + cta + ' &rarr;</a>' +\n'</td></tr></table>' +\n'</td></tr>' +\n\n'<tr><td style=\"padding:0;\">' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>' +\n'<td width=\"4\" style=\"background:#C9A84C;\">&nbsp;</td>' +\n'<td style=\"background:#F8F5F1;padding:20px 44px;\">' +\n'<p style=\"margin:0;font-size:11px;color:#9B8FA0;font-family:Arial,sans-serif;line-height:1.7;font-style:italic;\">Every purchase at Maison Beaute extends the life of a luxury product. Thank you for choosing circular beauty.</p>' +\n'</td></tr></table>' +\n'</td></tr>' +\n\n'<tr><td style=\"background:#1A1A2E;padding:30px 48px 34px;border-radius:0 0 3px 3px;\">' +\n'<p style=\"margin:0 0 3px;font-size:20px;color:#F2E8D9;font-family:Georgia,serif;\">Maison Beaute</p>' +\n'<p style=\"margin:0 0 20px;font-size:10px;color:#6B6080;font-family:Arial,sans-serif;\">maisonbeaute.de - Berlin, Germany</p>' +\n'<p style=\"margin:0;font-size:10px;color:#4A3A5A;font-family:Arial,sans-serif;border-top:1px solid #2D2040;padding-top:14px;\">You received this as part of The Edit. <a href=\"#\" style=\"color:#C9748F;text-decoration:none;\">Unsubscribe</a></p>' +\n'</td></tr>' +\n\n'</table></td></tr></table></body></html>';\n\nreturn [{ json: { html, subject, recipient, preview } }];"
       },
-      "id": "format-html-email",
+      "id": "node-code",
       "name": "Format HTML Email",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [480, 300]
+      "position": [
+        480,
+        300
+      ]
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.recipient }}",
+        "sendTo": "carolinanami@gmail.com",
         "subject": "={{ $json.subject }}",
+        "emailType": "html",
         "message": "={{ $json.html }}",
-        "options": {
-          "htmlBody": true
-        }
+        "options": {}
       },
-      "id": "gmail-send",
-      "name": "Send via Gmail",
+      "id": "node-gmail",
+      "name": "Send Newsletter Email",
       "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2,
-      "position": [720, 300],
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        300
+      ],
       "credentials": {
         "gmailOAuth2": {
-          "id": "gmail-oauth-creds",
-          "name": "Gmail OAuth2"
+          "name": "Gmail account"
         }
       }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ success: true, subject: $('Format HTML Email').first().json.subject, recipient: $('Format HTML Email').first().json.recipient }) }}"
-      },
-      "id": "webhook-response",
-      "name": "Webhook Response",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [960, 300]
     }
   ],
   "connections": {
-    "Newsletter Webhook": {
+    "Webhook": {
       "main": [
-        [{ "node": "Format HTML Email", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Format HTML Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Format HTML Email": {
       "main": [
-        [{ "node": "Send via Gmail", "type": "main", "index": 0 }]
-      ]
-    },
-    "Send via Gmail": {
-      "main": [
-        [{ "node": "Webhook Response", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Send Newsletter Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
   "settings": {
     "executionOrder": "v1"
-  },
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "maison-beaute-newsletter-workflow"
-  },
-  "notes": "Module 4 — Newsletter Studio email delivery.\nTriggered by FastAPI POST /newsletter/generate when send_email=true.\n\nPayload fields used:\n  subject_line  → email subject + header banner (EXACT, no regeneration)\n  preview_text  → preheader hidden text + italic subtitle\n  body          → split on \\n\\n into paragraphs\n  cta           → CTA button label\n  new_products  → matched via PRODUCT_MAP for product cards (name, SKU, image, badge)\n  recipient     → To: address (from N8N_NEWSLETTER_RECIPIENT env var in FastAPI)\n\nPRODUCT_MAP in the code node covers the 3 Newsletter Studio SKUs:\n  Lancôme Lip Idôle JuicyTreat  WI-000002100  MAKE-UP\n  La Mer The Treatment Lotion   WI-000000148  SKIN-CARE\n  U Beauty Resurfacing Compound WI-000000440  SKIN-CARE\n\nImages served from raw.githubusercontent.com (public). Falls back gracefully\nif image 404s (onerror hides the img tag).\n\nCredentials required: Gmail OAuth2 configured in n8n Cloud."
+  }
 }
