@@ -2,6 +2,7 @@
 import json
 import os
 import httpx
+from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
@@ -71,7 +72,13 @@ Rules:
 - Never use the word "luxury" more than twice in the entire body.
 - Never start two consecutive sentences with "The".
 """),
-    ("human", "Write a newsletter about these trending topics: {topics}\nNew products to feature: {products}\nLanguage: {language}"),
+    ("human", """Today's date is {current_date}. The current season in the Northern Hemisphere is {current_season}.
+
+Write a newsletter about these trending topics: {topics}
+New products to feature: {products}
+Language: {language}
+
+Make sure all seasonal references, mood, and timing match the actual current date provided above."""),
 ])
 
 chain = NEWSLETTER_PROMPT | llm
@@ -86,10 +93,23 @@ async def generate_newsletter(request: NewsletterRequest) -> NewsletterResponse:
     """
     try:
         # ── Step 1: Generate content with Claude Haiku ──────────────
+        now = datetime.now()
+        month = now.month
+        if month in [12, 1, 2]:
+            season = "Winter"
+        elif month in [3, 4, 5]:
+            season = "Spring"
+        elif month in [6, 7, 8]:
+            season = "Summer"
+        else:
+            season = "Autumn"
+
         result = await chain.ainvoke({
             "topics": ", ".join(request.trending_topics),
             "products": ", ".join(request.new_products) if request.new_products else "none specified",
             "language": request.language,
+            "current_date": now.strftime("%B %d, %Y"),
+            "current_season": season,
         })
 
         raw = result.content.strip()
