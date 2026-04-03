@@ -35,6 +35,12 @@ Maison Beauté AI Advisor is a four-module AI system built for a pre-loved luxur
 
 ---
 
+## Demo Recording
+
+[▶ Watch the full demo on Google Drive](https://drive.google.com/file/d/1BSBf36N9k0WQ4kw-LM2e_m0XiovIP_fX/view?usp=sharing)
+
+---
+
 ## Quick Start
 
 ### Prerequisites
