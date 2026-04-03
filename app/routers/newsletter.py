@@ -132,6 +132,7 @@ async def generate_newsletter(request: NewsletterRequest) -> NewsletterResponse:
                         "body": newsletter.body,
                         "cta": newsletter.cta,
                         "topics": request.trending_topics,
+                        "new_products": request.new_products,
                         "language": request.language,
                         "recipient": NEWSLETTER_RECIPIENT,
                     })
